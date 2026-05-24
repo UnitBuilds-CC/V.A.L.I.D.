@@ -1,0 +1,19 @@
+/* VAVID 3.0.0 HUD Styles */
+.vavid-dirty {
+    outline: 2px solid rgba(255, 255, 0, 0.5); /* Yellow glow for dirty */
+    transition: outline 0.3s ease;
+}
+
+.vavid-busy {
+    outline: 2px solid rgba(0, 0, 255, 0.5); /* Blue glow for busy/async */
+    animation: vavid-pulse-busy 1s infinite alternate;
+}
+
+.vavid-error {
+    outline: 2px solid rgba(255, 0, 0, 0.7); /* Red glow for error */
+}
+
+@keyframes vavid-pulse-busy {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}

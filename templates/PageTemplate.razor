@@ -1,0 +1,52 @@
+@page "/template-page"
+@inherits VavidComponentBase
+@using Valid
+@using YourApp.Models
+
+<PageTitle>Data Editor</PageTitle>
+
+<div class="page-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <Virtualize Items="@_items" Context="item">
+                <RowComponentTemplate Value="@item" />
+            </Virtualize>
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<DtoTemplate> _items = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        // Hydrate or fetch items from shuttle
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        
+        if (firstRender)
+        {
+            var ptr = WebWorkerBridge.GetStatePointer();
+            var len = WebWorkerBridge.GetSlabLength();
+
+            try 
+            {
+                await JSRuntime.InvokeVoidAsync("__VAVID_INITIALIZE_INDUSTRIAL_BYPASS__", (long)ptr, len);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"JS Bypass Init Failed: {ex.Message}");
+            }
+        }
+    }
+}

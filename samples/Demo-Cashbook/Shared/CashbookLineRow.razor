@@ -1,0 +1,142 @@
+@inherits VavidComponent<CashbookLine>
+@using DemoCashbook.Models
+@using Valid
+
+<tr class="@GetRowClass()"
+    data-vavid-slab-index="@Value.SlabIndex"
+    data-vavid-bit="0"
+    vavid-obj="@Value.GetHashCode().ToString()">
+    
+    <td>
+        <span class="mono-value" style="font-size: 11px; color: #64748b; font-weight: 600;">#@Value.LineNo</span>
+    </td>
+    
+    <td>
+        <input type="date" 
+               class="hud-input" 
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.TxDate))"
+               @bind="Value.TxDate"
+               @bind:format="yyyy-MM-dd" />
+    </td>
+
+    <td>
+        <select class="hud-input hud-select"
+                vavid-obj="@Value.GetHashCode().ToString()"
+                vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.Module))"
+                @bind="Value.Module">
+            <option value="@DemoCashbook.Models.CashbookModule.GeneralLedger">G/L</option>
+            <option value="@DemoCashbook.Models.CashbookModule.AccountsReceivable">A/R</option>
+            <option value="@DemoCashbook.Models.CashbookModule.AccountsPayable">A/P</option>
+        </select>
+    </td>
+
+    <td>
+        <input type="text" 
+               class="hud-input" 
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.AccountCode))"
+               @bind="Value.AccountCode" 
+               @bind:event="oninput" 
+               placeholder="Account" />
+    </td>
+
+    <td>
+        <input type="text" 
+               class="hud-input" 
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.Description))"
+               @bind="Value.Description" 
+               @bind:event="oninput" 
+               placeholder="Description" />
+    </td>
+
+    <td>
+        <input type="text" 
+               class="hud-input" 
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.Reference))"
+               @bind="Value.Reference" 
+               @bind:event="oninput" 
+               placeholder="Reference" />
+    </td>
+
+    <td>
+        <input type="number" 
+               class="hud-input text-right" 
+               data-vavid-offset="48"
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.Deposit))"
+               @bind="Value.Deposit" 
+               @bind:event="oninput" 
+               step="0.01" />
+    </td>
+
+    <td>
+        <input type="number" 
+               class="hud-input text-right" 
+               data-vavid-offset="52"
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.Payment))"
+               @bind="Value.Payment" 
+               @bind:event="oninput" 
+               step="0.01" />
+    </td>
+
+    <td>
+        <input type="number" 
+               class="hud-input text-right" 
+               data-vavid-offset="56"
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.TaxAmount))"
+               @bind="Value.TaxAmount" 
+               @bind:event="oninput" 
+               step="0.01" />
+    </td>
+
+    <td>
+        <input type="checkbox" 
+               style="height: 15px; width: 15px; cursor: pointer;"
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.Reconciled))"
+               @bind="Value.Reconciled" />
+    </td>
+
+    <td>
+        <button class="mud-button mud-button-filled-error" 
+                style="width: 24px; height: 24px; padding: 0; min-width: 0; display: flex; align-items: center; justify-content: center; border-radius: 4px;"
+                @onclick="OnDeleteClick"
+                title="Delete Line"
+                type="button">
+            ✕
+        </button>
+    </td>
+</tr>
+
+@code {
+    [Parameter] public EventCallback OnDelete { get; set; }
+
+    private async Task OnDeleteClick()
+    {
+        await OnDelete.InvokeAsync();
+    }
+
+    private string GetRowClass()
+    {
+        var baseClass = "cashbook-row grid-row";
+        if (Value.LogicalState == CashbookRules.EntityState.Tombstoned)
+        {
+            return $"{baseClass} opacity-30 text-red-500/50";
+        }
+        
+        var moduleClass = Value.Module switch
+        {
+            DemoCashbook.Models.CashbookModule.GeneralLedger => "row-gl",
+            DemoCashbook.Models.CashbookModule.AccountsReceivable => "row-ar",
+            DemoCashbook.Models.CashbookModule.AccountsPayable => "row-ap",
+            _ => ""
+        };
+
+        return $"{baseClass} {moduleClass}";
+    }
+}

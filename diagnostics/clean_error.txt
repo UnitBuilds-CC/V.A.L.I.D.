@@ -1,0 +1,28 @@
+﻿Build started 09/03/2026 4:11:10 pm.
+     1>Project "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\Valid.Generator.csproj" on node 1 (Clean target(s)).
+     1>_CheckForNETCoreSdkIsPreview:
+       C:\Program Files\dotnet\sdk\10.0.200-preview.0.26103.119\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(383,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\Valid.Generator.csproj]
+       CoreClean:
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\bin\Release\netstandard2.0\Valid.Generator.deps.json".
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\bin\Release\netstandard2.0\Valid.Generator.dll".
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\bin\Release\netstandard2.0\Valid.Generator.pdb".
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\obj\Release\netstandard2.0\Valid.Generator.csproj.AssemblyReference.cache".
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\obj\Release\netstandard2.0\Valid.Generator.GeneratedMSBuildEditorConfig.editorconfig".
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\obj\Release\netstandard2.0\Valid.Generator.AssemblyInfoInputs.cache".
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\obj\Release\netstandard2.0\Valid.Generator.AssemblyInfo.cs".
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\obj\Release\netstandard2.0\Valid.Generator.csproj.CoreCompileInputs.cache".
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\obj\Release\netstandard2.0\Valid.Generator.dll".
+         Deleting file "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\obj\Release\netstandard2.0\Valid.Generator.pdb".
+     1>C:\Program Files\dotnet\sdk\10.0.200-preview.0.26103.119\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1064: Package Microsoft.CodeAnalysis.Analyzers, version 3.3.4 was not found. It might have been deleted since NuGet restore. Otherwise, NuGet restore might have only partially completed, which might have been due to maximum path length restrictions. [C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\Valid.Generator.csproj]
+     1>Done Building Project "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\Valid.Generator.csproj" (Clean target(s)) -- FAILED.
+
+Build FAILED.
+
+       "C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\Valid.Generator.csproj" (Clean target) (1) ->
+       (ResolvePackageAssets target) -> 
+         C:\Program Files\dotnet\sdk\10.0.200-preview.0.26103.119\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1064: Package Microsoft.CodeAnalysis.Analyzers, version 3.3.4 was not found. It might have been deleted since NuGet restore. Otherwise, NuGet restore might have only partially completed, which might have been due to maximum path length restrictions. [C:\Users\User\Documents\V.A.L.I.D\Valid.Generator\Valid.Generator.csproj]
+
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.44

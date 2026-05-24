@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V.A.V.I.D. — Cashbook Batch System</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/app.css?v=26.3.3" />
+</head>
+
+<body>
+    <div id="app">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f8fafc; color: #0f172a; font-family: 'Inter', sans-serif;">
+            <div style="font-size: 1.5rem; font-weight: 600; margin-bottom: 20px;">Loading Cashbook Batch System...</div>
+            <div style="width: 200px; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden;">
+                <div style="width: 40%; height: 100%; background: #2563eb; animation: loading 1.5s infinite ease-in-out;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui" style="display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #ef4444; color: #fff; padding: 10px; font-family: monospace; z-index: 10000; text-align: center; box-shadow: 0 -5px 15px rgba(239, 68, 68, 0.3);">
+        CRITICAL CORE FAULT DETECTED.
+        <a href="" style="color: #fff; text-decoration: underline; margin-left: 15px; font-weight: bold;">RELOAD ENGINE</a>
+    </div>
+
+    <style>
+        @keyframes flash {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+    </style>
+
+    <script src="js/vavid.js"></script>
+    <script>
+        document.write('<script src="js/vavid-bypass.js?v=' + new Date().getTime() + '"><\/script>');
+    </script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+
+</html>

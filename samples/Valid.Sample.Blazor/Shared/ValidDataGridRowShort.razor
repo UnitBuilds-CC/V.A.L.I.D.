@@ -1,0 +1,34 @@
+@inherits VavidComponent<AxiomEntry>
+@using Valid
+@using Microsoft.AspNetCore.Components.Web
+
+<CascadingValue Value="(IValidObject)Value">
+<tr class="vavid-data-row border-b border-cyan-900/20 vavid-obj-context h-[30px]"
+    vavid-obj="@Value.GetHashCode()">
+    
+    <td class="p-2 text-cyan-500/30">#@Value.LineId</td>
+    
+    <td class="p-2 text-cyan-100">
+        <VavidValue Property="AccountCode" />
+    </td>
+
+    <td class="p-2 truncate text-cyan-100/70">
+        <VavidValue Property="Description" />
+    </td>
+
+    <AxiomAmountCell Value="@Value" />
+
+    <AxiomStatusCell Value="@Value" />
+
+    <td class="p-2 text-right text-[8px] text-cyan-800">
+        <VavidValue Property="EntryType" />
+    </td>
+</tr>
+</CascadingValue>
+
+<style>
+    .vavid-data-row {
+        cursor: pointer;
+        outline: none;
+    }
+</style>

@@ -1,0 +1,9 @@
+@using Valid
+
+<td class="p-2 text-center">
+    <VavidValue Property="IsProcessed" />
+</td>
+
+@code {
+    [Parameter] public AxiomEntry Value { get; set; } = default!;
+}

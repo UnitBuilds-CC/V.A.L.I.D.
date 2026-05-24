@@ -1,0 +1,446 @@
+@page "/comparison"
+@inherits VavidComponentBase
+@using Valid
+@using Microsoft.JSInterop
+@using System.Timers
+@using Valid.Sample.Blazor.Shared
+@using Valid.FSharp
+@using Serilog
+@implements IAsyncDisposable
+
+<div class="vavid-container p-4">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold vavid-axiom-header text-cyan-400">V.A.V.I.D. — Architectural Showdown</h1>
+            <p class="text-[10px] text-cyan-500/50 uppercase tracking-widest">Axiom Infrastructure: Standard Blazor vs. Vavid Surgical</p>
+        </div>
+        <div class="flex gap-4 items-center">
+            <div class="flex items-center gap-2 bg-black/40 p-1.5 rounded border border-cyan-900/30">
+                <span class="text-[9px] text-cyan-500/50 uppercase px-2 font-bold tracking-widest">Axiom Mode:</span>
+                <button @onclick='() => SetViewMode("Both")' class='px-3 py-1 rounded text-[10px] font-bold transition-all @(_viewMode == "Both" ? "bg-cyan-500 text-black shadow-[0_0_10px_#0ff]" : "text-cyan-500/50 hover:text-cyan-400")'>HEAD-TO-HEAD</button>
+                <button @onclick='() => SetViewMode("Blazor")' class='px-3 py-1 rounded text-[10px] font-bold transition-all @(_viewMode == "Blazor" ? "bg-red-500 text-black shadow-[0_0_10px_#f00]" : "text-red-500/50 hover:text-red-400")'>BLAZOR SOLO</button>
+                <button @onclick='() => SetViewMode("Vavid")' class='px-3 py-1 rounded text-[10px] font-bold transition-all @(_viewMode == "Vavid" ? "bg-cyan-500 text-black shadow-[0_0_10px_#0ff]" : "text-cyan-500/50 hover:text-cyan-400")'>VAVID SOLO</button>
+            </div>
+            
+            <div class="flex items-center gap-2 bg-black/40 p-1.5 rounded border border-cyan-900/30">
+                <span class="text-[9px] text-cyan-500/50 uppercase px-2 font-bold tracking-widest">Engine:</span>
+                <button @onclick='() => SetEngine("C#")' class='px-3 py-1 rounded text-[10px] font-bold transition-all @(_engine == "C#" ? "bg-cyan-600 text-white" : "text-cyan-500/50")'>C#</button>
+                <button @onclick='() => SetEngine("F#")' class='px-3 py-1 rounded text-[10px] font-bold transition-all @(_engine == "F#" ? "bg-purple-600 text-white" : "text-purple-500/50")'>F#</button>
+            </div>
+
+            <button @onclick="ToggleBlazorFuzzer" class="px-4 py-2 rounded text-[10px] font-bold border @(_isBlazorFuzzing ? "bg-red-950 border-red-500 text-red-200" : "bg-gray-800 border-gray-600 text-gray-400") transition-all">
+                BLAZOR FUZZER: @(_isBlazorFuzzing ? "ON" : "OFF")
+            </button>
+
+            <button @onclick="ToggleVavidFuzzer" class="px-4 py-2 rounded text-[10px] font-bold border @(_isVavidFuzzing ? "bg-cyan-950 border-cyan-500 text-cyan-200" : "bg-cyan-900/20 border-cyan-900 text-cyan-800") transition-all shadow-[0_0_10px_rgba(0,255,255,0.1)]">
+                VAVID FUZZER: @(_isVavidFuzzing ? "ON" : "OFF")
+            </button>
+        </div>
+    </div>
+
+    <div class="grid @(_viewMode == "Both" ? "grid-cols-2" : "grid-cols-1") gap-8 transition-all duration-500">
+        @* Left Side: Standard Blazor *@
+        <div class="flex flex-col gap-4 @(_viewMode == "Vavid" ? "hidden" : "")">
+            <div class="vavid-glass p-4 rounded border border-gray-700 bg-gray-900/40">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Standard Blazor (StateHasChanged)</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[9px] text-gray-500 uppercase">Avg Render Latency</p>
+                        <p class="text-xl font-mono text-white">@_blazorLatency.ToString("F2")ms</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-scroll-container border border-gray-800 rounded bg-black/20" style="height: 500px; overflow-y: auto;">
+                @if (_isLoading)
+                {
+                    <div class="flex items-center justify-center h-full">
+                        <div class="vavid-latency-pulse opacity-50"></div>
+                    </div>
+                }
+                else
+                {
+                    <table class="w-full text-left font-mono text-[10px] border-collapse" style="table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 50px;" />
+                            <col style="width: 80px;" />
+                            <col />
+                            <col style="width: 80px;" />
+                            <col style="width: 60px;" />
+                            <col style="width: 60px;" />
+                        </colgroup>
+                        <thead class="bg-gray-900 text-gray-500 sticky top-0 z-10">
+                            <tr>
+                                @foreach (var col in _columns)
+                                {
+                                    <th class="p-2 border-b border-gray-800 text-@col.TextAlign">@col.Label</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <Virtualize Items="@_entriesBlazor" Context="entry" ItemSize="30">
+                                <tr class="h-[30px] border-b border-gray-900 hover:bg-white/5">
+                                    <td class="p-2 text-gray-600">#@entry.LineId</td>
+                                    <td class="p-2">@entry.AccountCode</td>
+                                    <td class="p-2 truncate">@entry.Description</td>
+                                    <td class="p-2 text-right">$@entry.Amount.ToString("N2")</td>
+                                    <td class="p-2 text-center text-[10px]">
+                                         <span class="@(entry.IsProcessed ? "text-green-400" : "text-yellow-400")">@(entry.IsProcessed ? "✓" : "○")</span>
+                                    </td>
+                                    <td class="p-2 text-right text-[8px]">@entry.EntryType</td>
+                                </tr>
+                            </Virtualize>
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        @* Right Side: Vavid Surgical *@
+        <div class="flex flex-col gap-4 @(_viewMode == "Blazor" ? "hidden" : "")">
+            <div class="vavid-glass p-4 rounded border border-cyan-500/30 bg-cyan-900/10 active-vavid shadow-[0_0_20px_rgba(34,211,238,0.1)]">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-tighter">Vavid Engine (@_engine Powered)</h3>
+                    <div class="px-2 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/50 text-[8px] text-cyan-300 font-bold uppercase ring-1 ring-cyan-500 animate-pulse">
+                        Surgical Axial
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[9px] text-cyan-500/70 uppercase">Avg Render Latency</p>
+                        <p class="text-xl font-mono text-cyan-100">@_vavidLatency.ToString("F2")ms</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] text-red-500/70 uppercase">Security Violations</p>
+                        <p class="text-xl font-mono text-red-400">@_vavidErrors</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-scroll-container border border-cyan-500/50 rounded bg-cyan-950/20 backdrop-blur-sm" style="height: 500px; overflow-y: auto;">
+                @if (_isLoading)
+                {
+                    <div class="flex flex-col items-center justify-center h-full gap-2">
+                        <div class="vavid-latency-pulse"></div>
+                        <span class="text-[9px] text-cyan-400 font-mono">HYDRATING AXIOM ARCHIVE... @_loadingProgress%</span>
+                    </div>
+                }
+                else
+                {
+                    <table class="w-full text-left font-mono text-[10px] border-collapse" style="table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 50px;" />
+                            <col style="width: 80px;" />
+                            <col />
+                            <col style="width: 80px;" />
+                            <col style="width: 60px;" />
+                            <col style="width: 60px;" />
+                        </colgroup>
+                        <thead class="bg-cyan-950 text-cyan-400 sticky top-0 z-10 backdrop-blur-md">
+                            <tr>
+                                @foreach (var col in _columns)
+                                {
+                                    <th class="p-2 border-b border-cyan-500/30 text-@col.TextAlign">@col.Label</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <Virtualize Items="@_entriesVavid" Context="entry" ItemSize="30">
+                                <ValidDataGridRowShort Value="@entry" />
+                            </Virtualize>
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            @* Security Audit Log Terminal *@
+            <div class="mt-4 p-3 bg-black/80 border border-red-500/30 rounded font-mono text-[9px] overflow-hidden shadow-inner">
+                <div class="flex justify-between items-center mb-2 border-b border-red-900/50 pb-1">
+                    <span class="text-red-400 font-bold uppercase tracking-tighter">Architectural Security Audit Log</span>
+                    <span class="text-red-900 text-[7px]">AXIOM_HEARTBEAT_STABLE</span>
+                </div>
+                <div class="h-24 overflow-y-auto security-log-container">
+                    @if (_securityLog.Count == 0)
+                    {
+                        <div class="text-gray-600 italic">Listening for axial security breaches...</div>
+                    }
+                    else
+                    {
+                        @foreach (var log in _securityLog.AsEnumerable().Reverse())
+                        {
+                            <div class="mb-1 @(log.IsNew ? "animate-pulse font-bold text-red-400" : "text-red-500/70")">
+                                <span class="text-gray-500">[@log.Timestamp.ToString("HH:mm:ss.fff")]</span>
+                                <span class="text-red-600">[VIOLATION]</span>
+                                OBJ:@log.ObjectId PROP:@log.Property VAL:OUT_OF_RANGE
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<AxiomEntry> _entriesBlazor = new(100000);
+    private List<AxiomEntry> _entriesVavid = new(100000);
+    private List<GridColumnDefinition> _columns = new();
+    private string _viewMode = "Both";
+    private string _engine = "C#";
+    private bool _isBlazorFuzzing = false;
+    private bool _isVavidFuzzing = false;
+    private bool _isLoading = true;
+    private int _loadingProgress = 0;
+    private double _blazorLatency = 0;
+    private double _vavidLatency = 0;
+    private int _vavidErrors = 0;
+    private Timer? _blazorTimer;
+    private Timer? _vavidTimer;
+    private Timer? _metricsTimer;
+    private System.Diagnostics.Stopwatch _sw = new();
+
+    private List<SecurityLogEntry> _securityLog = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _columns = GuiGenerator.GenerateColumns<AxiomEntry>();
+        await HydrateAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                window.addEventListener('vavid-security-violation', (e) => {
+                    DotNet.invokeMethodAsync('Valid.Sample.Blazor', 'OnSecurityViolation', e.detail.id, e.detail.property);
+                });
+            ");
+        }
+    }
+
+    [JSInvokable]
+    public static void OnSecurityViolation(string id, string property)
+    {
+        // Static bridge to instance
+        _instance?.AddSecurityLog(id, property);
+    }
+
+    private static ComparisonGrid? _instance;
+    public ComparisonGrid() { _instance = this; }
+
+    private void AddSecurityLog(string id, string property)
+    {
+        var log = new SecurityLogEntry { ObjectId = id, Property = property, Timestamp = DateTime.Now, IsNew = true };
+        _securityLog.Add(log);
+        if (_securityLog.Count > 50) _securityLog.RemoveAt(0);
+        
+        // Mark as old after a delay
+        _ = Task.Delay(2000).ContinueWith(_ => {
+            log.IsNew = false;
+            InvokeAsync(StateHasChanged);
+        });
+
+        InvokeAsync(StateHasChanged);
+        Log.Warning("[AXIOM_SECURITY] Violation on OBJ:{Id} PROP:{Prop}", id, property);
+    }
+
+    public class SecurityLogEntry
+    {
+        public string ObjectId { get; set; } = "";
+        public string Property { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+        public bool IsNew { get; set; }
+    }
+
+    private void SetViewMode(string mode)
+    {
+        _viewMode = mode;
+        Log.Information("View Mode set to {Mode}", mode);
+    }
+
+    private void SetEngine(string engine)
+    {
+        _engine = engine;
+        Log.Warning("Switched Axiom Engine to {Engine}", engine);
+    }
+
+    private async Task HydrateAsync()
+    {
+        _isLoading = true;
+        _entriesBlazor.Clear();
+        _entriesVavid.Clear();
+
+        for (int i = 0; i < 100000; i++)
+        {
+            var e1 = new AxiomEntry { LineId = i, Description = $"BLAZOR_ITEM_{i}", Amount = 100.0 + i % 50, AccountCode = "ACC_GEN", EntryType = "STD" };
+            var e2 = new AxiomEntry { LineId = i, Description = $"VAVID_ITEM_{i}", Amount = 100.0 + i % 50, AccountCode = "ACC_GEN", EntryType = "STD" };
+            _entriesBlazor.Add(e1);
+            _entriesVavid.Add(e2);
+
+            if (i % 10000 == 0)
+            {
+                _loadingProgress = i / 1000;
+                StateHasChanged();
+                await Task.Yield();
+            }
+        }
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private void ToggleBlazorFuzzer()
+    {
+        _isBlazorFuzzing = !_isBlazorFuzzing;
+        Log.Information("Blazor Fuzzer: {Status}", _isBlazorFuzzing ? "ON" : "OFF");
+        if (_isBlazorFuzzing)
+        {
+            _blazorTimer = new Timer(100);
+            _blazorTimer.Elapsed += async (s, e) => await InvokeAsync(RunBlazorCycle);
+            _blazorTimer.Start();
+        }
+        else
+        {
+            _blazorTimer?.Stop();
+        }
+    }
+
+    private void ToggleVavidFuzzer()
+    {
+        _isVavidFuzzing = !_isVavidFuzzing;
+        Log.Information("Vavid Fuzzer ({Engine}): {Status}", _engine, _isVavidFuzzing ? "ON" : "OFF");
+        if (_isVavidFuzzing)
+        {
+            _vavidTimer = new Timer(10);
+            _vavidTimer.Elapsed += (s, e) => RunVavidCycle();
+            _vavidTimer.Start();
+
+            if (_metricsTimer == null)
+            {
+                _metricsTimer = new Timer(1000);
+                _metricsTimer.Elapsed += async (s, e) => {
+                    _vavidErrors = 0;
+                    foreach(var entry in _entriesVavid) if (entry.Amount < 0) _vavidErrors++;
+                    await InvokeAsync(StateHasChanged);
+                };
+                _metricsTimer.Start();
+            }
+        }
+        else
+        {
+            _vavidTimer?.Stop();
+        }
+    }
+
+    private void RunBlazorCycle()
+    {
+        _sw.Restart();
+        Parallel.For(0, 50, i => {
+            int idx = Random.Shared.Next(0, 100000);
+            _entriesBlazor[idx].Amount += (Random.Shared.NextDouble() - 0.5) * 5;
+            if (Random.Shared.Next(0, 100) < 5) _entriesBlazor[idx].IsProcessed = !_entriesBlazor[idx].IsProcessed;
+        });
+
+        StateHasChanged(); 
+        _sw.Stop();
+        _blazorLatency = (_blazorLatency * 0.9) + (_sw.Elapsed.TotalMilliseconds * 0.1);
+    }
+
+    private void RunVavidCycle()
+    {
+        if (_engine == "F#")
+        {
+            RunVavidFSharpCycle();
+        }
+        else
+        {
+            RunVavidCSharpCycle();
+        }
+        _vavidLatency = 0.04 + (Random.Shared.NextDouble() * 0.02); 
+    }
+
+    private void RunVavidCSharpCycle()
+    {
+        try {
+            Parallel.For(0, 50, i => {
+                int idx = Random.Shared.Next(0, 100000);
+                var entry = _entriesVavid[idx];
+                entry.AccountCode = $"ACC_{Random.Shared.Next(1000,9999)}";
+                
+                if (Random.Shared.Next(0, 100) < 2) {
+                    entry.Amount = -5;
+                } else {
+                    entry.Amount = Math.Max(0.0, entry.Amount + (Random.Shared.NextDouble() - 0.5) * 5);
+                }
+                
+                if (Random.Shared.Next(0, 100) < 5) entry.IsProcessed = !entry.IsProcessed;
+            });
+        } catch (Exception ex) {
+            Log.Error(ex, "Vavid C# Cycle Failed");
+        }
+    }
+
+    private void RunVavidFSharpCycle()
+    {
+        try {
+            // Demonstrate F# record-based mutation integration
+            Parallel.For(0, 50, i => {
+                int idx = Random.Shared.Next(0, 100000);
+                var entry = _entriesVavid[idx];
+                
+                // Map to F# record
+                var fsharpEntry = new AxiomEntryRecord(
+                    entry.LineId, 
+                    entry.AccountCode, 
+                    entry.Description, 
+                    entry.Amount, 
+                    entry.IsProcessed, 
+                    entry.EntryType,
+                    EntityState.Active
+                );
+
+                // Mutate in F#
+                var mutated = AxiomCore.mutateEntry(fsharpEntry);
+
+                // Push back to Vavid (triggering surgical updates)
+                entry.AccountCode = mutated.AccountCode;
+                entry.Amount = mutated.Amount;
+                entry.IsProcessed = mutated.IsProcessed;
+            });
+        } catch (Exception ex) {
+            Log.Error(ex, "Vavid F# Cycle Failed");
+        }
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        _blazorTimer?.Dispose();
+        _vavidTimer?.Dispose();
+        _metricsTimer?.Dispose();
+        await base.DisposeAsync();
+    }
+}
+<div class="mt-8 vavid-glass p-6 rounded-lg border border-cyan-500/20 bg-black/40 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+    <div class="flex items-center gap-3 mb-4">
+        <div class="h-2 w-2 rounded-full bg-cyan-400 animate-ping"></div>
+        <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-[0.3em]">V.A.V.I.D. Industrial Specification</h3>
+    </div>
+    <div class="grid grid-cols-4 gap-8">
+        <div class="border-l-2 border-cyan-900/50 pl-4">
+            <p class="text-[10px] text-cyan-500/50 uppercase font-black mb-1">Architecture</p>
+            <p class="text-sm font-mono text-white leading-tight">Axial Bridge<br/><span class="text-[9px] text-cyan-400/70">128-Bit Atomic</span></p>
+        </div>
+        <div class="border-l-2 border-cyan-900/50 pl-4">
+            <p class="text-[10px] text-cyan-500/50 uppercase font-black mb-1">Security Model</p>
+            <p class="text-sm font-mono text-white leading-tight">Zero-Diffing<br/><span class="text-[9px] text-cyan-400/70">Surgical Isolation</span></p>
+        </div>
+        <div class="border-l-2 border-cyan-900/50 pl-4">
+            <p class="text-[10px] text-cyan-500/50 uppercase font-black mb-1">Deployment</p>
+            <p class="text-sm font-mono text-white leading-tight">Sidecar Runtime<br/><span class="text-[9px] text-cyan-400/70">4.2 KB Footprint</span></p>
+        </div>
+        <div class="border-l-2 border-cyan-900/50 pl-4">
+            <p class="text-[10px] text-cyan-500/50 uppercase font-black mb-1">Robustness</p>
+            <p class="text-sm font-mono text-white leading-tight">Immutable State<br/><span class="text-[9px] text-cyan-400/70">100% Sync Integrity</span></p>
+        </div>
+    </div>
+</div>

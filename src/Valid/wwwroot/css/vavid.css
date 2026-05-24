@@ -1,0 +1,36 @@
+/* VAVID 3.0.0 HUD Styles */
+.vavid-glass {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 64, 175, 0.4) 50%, rgba(13, 148, 136, 0.2) 100%);
+    backdrop-filter: blur(12px) saturate(160%);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(34, 211, 238, 0.05);
+    transition: all 0.3s ease;
+}
+
+.vavid-glass:hover {
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), inset 0 0 30px rgba(34, 211, 238, 0.1);
+}
+
+/* Industrial visualization: High-visibility backgrounds */
+.vavid-dirty {
+    background-color: rgba(255, 255, 0, 0.4) !important;
+    border-color: #ffd700 !important;
+    transition: background-color 0.2s ease;
+}
+
+.vavid-busy {
+    background-color: rgba(30, 64, 175, 0.3) !important;
+    border-color: #3b82f6 !important;
+    animation: vavid-pulse-busy 1s infinite alternate;
+}
+
+.vavid-error {
+    background-color: rgba(239, 68, 68, 0.3) !important;
+    border-color: #ef4444 !important;
+}
+
+@keyframes vavid-pulse-busy {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}

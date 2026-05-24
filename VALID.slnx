@@ -1,0 +1,12 @@
+<Solution>
+  <Project Path="src/Valid.Generator/Valid.Generator.csproj" />
+  <Project Path="src/Valid.Mcp/Valid.Mcp.csproj" />
+  <Project Path="samples/Valid.Sample.Blazor/Valid.Sample.Blazor.csproj" />
+  <Project Path="samples/Valid.Sample/Valid.Sample.csproj" />
+  <Project Path="samples/Demo-Cashbook/Demo-Cashbook.csproj" />
+  <Project Path="samples/Demo-Cashbook/CashbookRules/CashbookRules.fsproj" />
+  <Project Path="samples/Demo-Cashbook/Demo-Cashbook.Benchmarks/Demo-Cashbook.Benchmarks.csproj" />
+  <Project Path="tests/Valid.Testing/Valid.Testing.csproj" />
+  <Project Path="src/Valid/Valid.csproj" />
+  <Project Path="src/Valid.FSharp/Valid.FSharp.fsproj" />
+</Solution>

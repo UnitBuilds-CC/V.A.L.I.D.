@@ -1,0 +1,137 @@
+@page "/"
+@inherits VavidComponentBase
+
+<PageTitle>VALID 3.0.0 — HUD Demo</PageTitle>
+
+<div class="container mt-5">
+    <div class="card bg-dark text-light border-secondary">
+        <div class="card-header border-secondary">
+            <h3 class="mb-0">SpaceShuttle V3.0.0 HUD</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Shuttle Name</label>
+                        <input type="text" 
+                               class="form-control bg-dark text-light" 
+                               vavid-obj="@Shuttle.GetHashCode().ToString()"
+                               vavid-bit="@Shuttle.GetBitIndex(nameof(SpaceShuttle.ShuttleName))"
+                               @bind="Shuttle.ShuttleName" 
+                               @bind:event="oninput" />
+                        <div class="small text-muted mt-1">Dirty Bit: @IsDirty(Shuttle.GetBitIndex(nameof(SpaceShuttle.ShuttleName)))</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Velocity (km/h)</label>
+                        <input type="number" 
+                               class="form-control bg-dark text-light" 
+                               vavid-obj="@Shuttle.GetHashCode().ToString()"
+                               vavid-bit="@Shuttle.GetBitIndex(nameof(SpaceShuttle.Velocity))"
+                               @bind="Shuttle.Velocity" 
+                               @bind:event="oninput" />
+                        <div class="small text-muted mt-1">Dirty Bit: @IsDirty(Shuttle.GetBitIndex(nameof(SpaceShuttle.Velocity))) | Error: @HasError(Shuttle.GetBitIndex(nameof(SpaceShuttle.Velocity)))</div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" 
+                               vavid-obj="@Shuttle.GetHashCode().ToString()"
+                               vavid-bit="@Shuttle.GetBitIndex(nameof(SpaceShuttle.IsDocked))"
+                               @bind="Shuttle.IsDocked" id="dockedCheck">
+                        <label class="form-check-label" for="dockedCheck">
+                            Is Docked
+                        </label>
+                    </div>
+
+                    <button class="btn btn-outline-primary" @onclick="SimulateSync">Simulate Sync</button>
+                    <button class="btn btn-outline-danger" @onclick="Reset">Reset State</button>
+                </div>
+
+                <div class="col-md-6 border-start border-secondary py-3">
+                    <h5>Quad-Mask Telemetry</h5>
+                    <div class="telemetry-block p-3 bg-black rounded">
+                        <div>DirtyFlags: <span class="text-warning">@Shuttle.DirtyFlags.ToString("X16")</span></div>
+                        <div>ErrorFlags: <span class="text-danger">@Shuttle.ErrorFlags.ToString("X16")</span></div>
+                        <div>BusyFlags:  <span class="text-info">@Shuttle.BusyFlags.ToString("X16")</span></div>
+                        <div>StateFlags: <span class="text-success">@Shuttle.StateFlags.ToString("X16")</span></div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h6>Diagnostic Feed</h6>
+                        <ul class="list-unstyled">
+                            @foreach (var diag in Shuttle.GetDiagnostics())
+                            {
+                                <li class="text-danger small">[@diag.Code] @diag.Property: @diag.Message</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private SpaceShuttle Shuttle = new();
+
+    protected override void OnInitialized()
+    {
+        Model = Shuttle;
+        base.OnInitialized();
+    }
+
+    private string GetFieldClass(int index) => index >= 0 && IsDirty(index) ? "vavid-dirty" : "";
+    private bool IsDirty(int index) => index >= 0 && (Shuttle.DirtyFlags & ((System.UInt128)1 << index)) != 0;
+    private bool HasError(int index) => index >= 0 && (Shuttle.ErrorFlags & ((System.UInt128)1 << index)) != 0;
+
+    private async Task SimulateSync()
+    {
+        // Simulate a busy state for field 1 (Velocity)
+        // In VALID 3.0.0, this is bit-shifted
+        // Normally the generator/base handles this, we'll simulate for the UI
+        Console.WriteLine("Syncing...");
+        await Task.Delay(1000);
+    }
+
+    private void Reset()
+    {
+        Shuttle = new SpaceShuttle();
+        StateHasChanged();
+    }
+}
+
+<style>
+    .telemetry-block {
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        font-size: 0.9rem;
+        line-height: 1.8;
+        background: linear-gradient(180deg, #000, #001a1a);
+        border: 1px solid #0891b2;
+        box-shadow: inset 0 0 20px rgba(8, 145, 178, 0.2);
+    }
+    
+    /* VAVID 3.0.0 Surgical HUD Effects */
+    .vavid-dirty {
+        box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+        border-color: #ffc107 !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .vavid-busy {
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.5);
+        border-color: #0d6efd !important;
+        animation: vavid-pulse-busy 0.8s infinite alternate;
+    }
+    .vavid-error {
+        box-shadow: 0 0 20px rgba(220, 53, 69, 0.6);
+        border-color: #dc3545 !important;
+        animation: vavid-shake 0.4s ease-in-out;
+    }
+
+    @@keyframes vavid-shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-2px); }
+        50% { transform: translateX(2px); }
+        75% { transform: translateX(-2px); }
+        100% { transform: translateX(0); }
+    }
+</style>

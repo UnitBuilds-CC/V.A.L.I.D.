@@ -1,0 +1,18 @@
+# Build output folders
+bin/
+obj/
+BenchmarkDotNet.Artifacts/
+
+# User-specific / IDE configuration
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini

@@ -1,0 +1,19 @@
+@using Valid
+@namespace Valid.Sample.Blazor.Components
+
+<div class="benchmark-grid-container" style="border: 1px solid #ccc; border-radius: 8px; overflow: hidden; background: #fff;">
+    <BenchmarkHeader />
+    
+    <div class="benchmark-rows-container" style="max-height: 700px; overflow-y: auto;">
+        @if (Items != null)
+        {
+            <Virtualize Items="Items" Context="item">
+                <BenchmarkRow Item="item" ItemIndex="Items.IndexOf(item)" />
+            </Virtualize>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<BenchmarkItem>? Items { get; set; }
+}

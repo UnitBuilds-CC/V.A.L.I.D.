@@ -1,0 +1,752 @@
+@page "/"
+@inherits VavidComponentBase
+@using Valid
+@using DemoCashbook.Models;
+@using System.Diagnostics
+@using System.Timers
+
+<PageTitle>Cashbook Editor</PageTitle>
+
+<div class="cashbook-page-container p-4" style="min-height: 100vh; background-color: var(--bg-light); font-family: 'Inter', sans-serif;">
+    
+    <div class="mud-paper mb-3" style="padding: 16px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="mud-button mud-button-filled-secondary" style="width: 32px; height: 32px; min-width: 32px; padding: 0;" title="Close" type="button">
+                    <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                </button>
+                <div>
+                    <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0; display: inline-flex; align-items: center; gap: 8px;">
+                        @(string.IsNullOrEmpty(CashbookModel.CashbookNumber) ? "New Cashbook" : CashbookModel.CashbookNumber)
+                        <span class="mud-chip mud-chip-info" style="font-size: 9px; height: 18px; padding: 0 6px;">Open</span>
+                    </h2>
+                </div>
+            </div>
+            
+            <div class="button-toolbar">
+                <button class="mud-button mud-button-filled-secondary" style="border-color: #6366f1; color: #4f46e5; background-color: #f5f3ff;" @onclick="ToggleDevTools" type="button">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 14px; height: 14px; margin-right: 4px;" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    🔧 Showcase DevTools
+                </button>
+                <span style="border-left: 1px solid #e2e8f0; height: 20px; margin: 0 4px;"></span>
+                <button class="mud-button mud-button-filled-secondary" type="button">Import</button>
+                <button class="mud-button mud-button-filled-secondary" type="button">Export</button>
+                <button class="mud-button mud-button-filled-secondary" type="button">Print</button>
+                <span style="border-left: 1px solid #e2e8f0; height: 20px; margin: 0 4px;"></span>
+                <button class="mud-button mud-button-filled-secondary" type="button">Settings</button>
+                <button class="mud-button mud-button-filled-secondary" type="button">Validate</button>
+                <button class="mud-button mud-button-filled-primary" type="button">Save</button>
+                <button class="mud-button mud-button-filled-info" type="button">Post</button>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="flex: 1 1 65%; min-width: 300px;">
+                <div class="header-grid">
+                    <div>
+                        <label class="mud-input-label" style="font-size: 9px; margin-bottom: 2px;">Cashbook Number</label>
+                        <input type="text" 
+                               class="hud-input" 
+                               style="width: 100%;"
+                               vavid-obj="@CashbookModel.GetHashCode().ToString()"
+                               vavid-bit="@CashbookModel.GetBitIndex(nameof(Cashbook.CashbookNumber))"
+                               @bind="CashbookModel.CashbookNumber" 
+                               @bind:event="oninput" 
+                               placeholder="C-00000" />
+                    </div>
+                    
+                    <div>
+                        <label class="mud-input-label" style="font-size: 9px; margin-bottom: 2px;">BankAccount</label>
+                        <input type="text" 
+                               class="hud-input" 
+                               style="width: 100%;"
+                               vavid-obj="@CashbookModel.GetHashCode().ToString()"
+                               vavid-bit="@CashbookModel.GetBitIndex(nameof(Cashbook.BankAccountCode))"
+                               @bind="CashbookModel.BankAccountCode" 
+                               @bind:event="oninput" 
+                               placeholder="BANK-MAIN" />
+                    </div>
+
+                    <div class="header-grid-col-2">
+                        <label class="mud-input-label" style="font-size: 9px; margin-bottom: 2px;">Description</label>
+                        <input type="text" 
+                               class="hud-input" 
+                               style="width: 100%;"
+                               vavid-obj="@CashbookModel.GetHashCode().ToString()"
+                               vavid-bit="@CashbookModel.GetBitIndex(nameof(Cashbook.Description))"
+                               @bind="CashbookModel.Description" 
+                               @bind:event="oninput" />
+                    </div>
+
+                    <div>
+                        <label class="mud-input-label" style="font-size: 9px; margin-bottom: 2px;">Posting Version</label>
+                        <input type="text" class="hud-input" style="width: 100%; background-color: #f1f5f9; color: #64748b;" value="V3.0.0" readonly />
+                    </div>
+
+                    <div>
+                        <label class="mud-input-label" style="font-size: 9px; margin-bottom: 2px;">Created By</label>
+                        <input type="text" class="hud-input" style="width: 100%; background-color: #f1f5f9; color: #64748b;" value="Administrator" readonly />
+                    </div>
+
+                    <div class="header-grid-col-2">
+                        <label class="mud-input-label" style="font-size: 9px; margin-bottom: 2px;">Validation Status</label>
+                        <div style="height: 32px; display: flex; align-items: center; border: 1px dashed #cbd5e1; border-radius: 4px; padding: 0 10px; background-color: #fafafa; font-size: 11px; font-weight: 500; color: #64748b;">
+                            @if (CashbookModel.ErrorFlags == System.UInt128.Zero)
+                            {
+                                <span class="pulse-indicator" style="margin-right: 6px;"></span>
+                                <span>Declarative Auto-Validation: OK (0 Errors)</span>
+                            }
+                            else
+                            {
+                                <span class="pulse-indicator error" style="margin-right: 6px;"></span>
+                                <span style="color: #ef4444; font-weight: 600;">Model validation alerts present</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @if (CashbookModel.ErrorFlags != System.UInt128.Zero)
+                {
+                    <div class="mt-2 p-2" style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 4px;">
+                        <ul class="list-unstyled mb-0 pl-0" style="margin: 0; padding: 0; list-style: none;">
+                            @foreach (var diag in CashbookModel.GetDiagnostics())
+                            {
+                                <li style="color: #b91c1c; font-size: 10px; font-family: monospace; display: flex; gap: 4px;">
+                                    <span>•</span>
+                                    <span>[@diag.Property] @diag.Message</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+
+            <div style="flex: 1 1 30%; min-width: 250px;">
+                <div style="padding: 12px 14px; border-radius: 6px; border: 1px solid #e2e8f0; background-color: #f8fafc;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Control Totals</span>
+                        <span class="mud-chip mud-chip-info" style="font-size: 9px; height: 16px; padding: 0 4px; background-color: rgba(89, 74, 226, 0.08); color: var(--mud-primary);">ZAR</span>
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 11px;">
+                       <thead>
+                           <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b;">
+                               <th style="padding-bottom: 4px; text-align: left; font-weight: 600;">TYPE</th>
+                               <th style="padding-bottom: 4px; text-align: right; font-weight: 600;">ACTUAL</th>
+                               <th style="padding-bottom: 4px; text-align: center; font-weight: 600; width: 85px;">TARGET</th>
+                               <th style="padding-bottom: 4px; text-align: right; font-weight: 600;">DIFF</th>
+                           </tr>
+                       </thead>
+                       <tbody>
+                           <tr style="border-bottom: 1px solid #f1f5f9;">
+                               <td style="padding: 6px 0; color: #475569;">Deposits</td>
+                               <td id="total-actual-deposits" style="padding: 6px 0; text-align: right; font-weight: 500; color: @(Math.Abs(CashbookModel.ValidationTotalDeposits - ActualDeposits) < 0.01 ? "#16a34a" : "#d97706")">
+                                   @ActualDeposits.ToString("N2")
+                               </td>
+                               <td style="padding: 6px 0; text-align: center;">
+                                   <input type="number" 
+                                          id="target-deposits-input"
+                                          class="hud-input" 
+                                          style="width: 75px; text-align: right; height: 22px; padding: 0 4px; font-size: 11px;" 
+                                          vavid-obj="@CashbookModel.GetHashCode().ToString()"
+                                          vavid-bit="@CashbookModel.GetBitIndex(nameof(Cashbook.ValidationTotalDeposits))"
+                                          @bind="CashbookModel.ValidationTotalDeposits" 
+                                          @bind:event="oninput" 
+                                          step="0.01" />
+                               </td>
+                               <td id="total-diff-deposits" style="padding: 6px 0; text-align: right; font-weight: 700; color: @(Math.Abs(CashbookModel.ValidationTotalDeposits - ActualDeposits) < 0.01 ? "#16a34a" : "#ef4444")">
+                                   @((ActualDeposits - CashbookModel.ValidationTotalDeposits).ToString("N2"))
+                               </td>
+                           </tr>
+                           <tr>
+                               <td style="padding: 6px 0; color: #475569;">Payments</td>
+                               <td id="total-actual-payments" style="padding: 6px 0; text-align: right; font-weight: 500; color: @(Math.Abs(CashbookModel.ValidationTotalPayments - ActualPayments) < 0.01 ? "#16a34a" : "#d97706")">
+                                   @ActualPayments.ToString("N2")
+                               </td>
+                               <td style="padding: 6px 0; text-align: center;">
+                                   <input type="number" 
+                                          id="target-payments-input"
+                                          class="hud-input" 
+                                          style="width: 75px; text-align: right; height: 22px; padding: 0 4px; font-size: 11px;" 
+                                          vavid-obj="@CashbookModel.GetHashCode().ToString()"
+                                          vavid-bit="@CashbookModel.GetBitIndex(nameof(Cashbook.ValidationTotalPayments))"
+                                          @bind="CashbookModel.ValidationTotalPayments" 
+                                          @bind:event="oninput" 
+                                          step="0.01" />
+                               </td>
+                               <td id="total-diff-payments" style="padding: 6px 0; text-align: right; font-weight: 700; color: @(Math.Abs(CashbookModel.ValidationTotalPayments - ActualPayments) < 0.01 ? "#16a34a" : "#ef4444")">
+                                   @((ActualPayments - CashbookModel.ValidationTotalPayments).ToString("N2"))
+                               </td>
+                           </tr>
+                       </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="desktop-workspace mt-3">
+        <div class="main-content">
+            <div class="mud-paper mb-3" style="padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 8px;">
+                    <button class="mud-button mud-button-filled-secondary" style="height: 30px;" type="button">Bank Mappings</button>
+                    <button class="mud-button mud-button-filled-secondary" style="height: 30px;" type="button">Run Mappings</button>
+                    <span style="border-left: 1px solid #e2e8f0; height: 20px; align-self: center; margin: 0 4px;"></span>
+                    <button class="mud-button mud-button-filled-secondary" style="height: 30px;" type="button">Split Line</button>
+                    <button class="mud-button mud-button-filled-secondary" style="height: 30px;" type="button">Add Split Line</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="mud-button mud-button-filled-secondary" style="height: 30px; border-color: #fecaca; color: #ef4444;" @onclick="ClearLines" type="button">Clear Lines</button>
+                    <button class="mud-button mud-button-filled-primary" style="height: 30px;" @onclick="AddLine" type="button">Add Line</button>
+                </div>
+            </div>
+
+            <div class="mud-paper" style="padding: 0; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; color: #334155; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">Transaction Line Registry</h3>
+                    <span style="font-size: 11px; font-weight: 600; color: #64748b; font-family: monospace;">Total Records: @_lines.Count</span>
+                </div>
+
+                <div style="height: calc(100vh - 440px); overflow-y: auto;">
+                    <table class="virtual-table w-full text-left font-mono text-[11px]" style="display: block;">
+                        <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 #cbd5e1; display: block;">
+                            <tr class="grid-row">
+                                <th>LNO</th>
+                                <th>DATE</th>
+                                <th>MODULE</th>
+                                <th>ACCOUNT</th>
+                                <th>DESCRIPTION</th>
+                                <th>REFERENCE</th>
+                                <th style="text-align: right; padding-right: 12px;">DEPOSIT</th>
+                                <th style="text-align: right; padding-right: 12px;">PAYMENT</th>
+                                <th style="text-align: right; padding-right: 12px;">TAX</th>
+                                <th style="text-align: center;">REC</th>
+                                <th style="text-align: center;">DEL</th>
+                            </tr>
+                        </thead>
+                        <tbody style="display: block;">
+                            <Virtualize Items="@_lines" Context="line">
+                                <CashbookLineRow Value="@line" OnDelete="@(() => DeleteLine(line))" />
+                            </Virtualize>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; font-family: monospace; font-size: 11px; font-weight: 500; color: #475569; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span class="pulse-indicator"></span>
+                            VALID Engine: Active
+                        </span>
+                        <span>|</span>
+                        <span>Performance Mode: WASM Bypass</span>
+                        <span>|</span>
+                        <span>Telemetry FPS: @Math.Round(BypassFps)</span>
+                    </div>
+                    <div>
+                        <span style="margin-right: 16px;">Active Rows: @BypassRows</span>
+                        <span>Total Tax: ZAR @_lines.Sum(l => l.TaxAmount).ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="drawer-backdrop @(_isDevToolsOpen ? "open" : "")" @onclick="ToggleDevTools"></div>
+
+    <div class="showcase-drawer @(_isDevToolsOpen ? "open" : "")">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 12px; margin-bottom: 8px;">
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: #0f172a; margin: 0; display: inline-flex; align-items: center; gap: 8px;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px; color: var(--mud-primary);" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                VALID Showcase Hub
+            </h3>
+            <button class="mud-button mud-button-filled-secondary" style="height: 26px; min-width: 26px; width: 26px; padding: 0; display: flex; align-items: center; justify-content: center;" @onclick="ToggleDevTools" type="button">✕</button>
+        </div>
+
+        <div class="metric-card">
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0;">Bypass Telemetry</h4>
+            <div class="metric-row">
+                <span class="metric-label">FPS Counter:</span>
+                <span class="metric-value">@Math.Round(BypassFps) fps</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Active Bypass Rows:</span>
+                <span class="metric-value" style="color: var(--mud-primary);">@BypassRows</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">WASM Module:</span>
+                <span class="metric-value" style="color: @(TelemetryHasModule ? "#16a34a" : "#dc2626")">@(TelemetryHasModule ? "ACTIVE" : "MISSING")</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Heap Buffer:</span>
+                <span class="metric-value" style="color: @(TelemetryHasHeap ? "#16a34a" : "#dc2626")">@(TelemetryHasHeap ? "RESOLVED" : "ERROR")</span>
+            </div>
+            <div class="metric-row" style="border-bottom: none;">
+                <span class="metric-label">Heap Path:</span>
+                <span class="metric-value" style="font-size: 9px; color: #4f46e5;">@TelemetryHeapResolver</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0;">Throughput Stress Test</h4>
+            <div class="metric-row">
+                <span class="metric-label">Fuzzer State:</span>
+                <span class="metric-value" style="color: @(_isFuzzing ? "#16a34a" : "#64748b")">@(_isFuzzing ? "RUNNING" : "STANDBY")</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Total Mutations:</span>
+                <span class="metric-value">@TotalMutations.ToString("N0")</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Throughput:</span>
+                <span class="metric-value" style="color: #16a34a;">@Mps.ToString("N0") muts/sec</span>
+            </div>
+            <div class="metric-row" style="border-bottom: none;">
+                <span class="metric-label">Cycle Latency:</span>
+                <span class="metric-value" style="color: #d97706;">@LastBatchMs.ToString("F3") ms</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                <button class="mud-button @(_isFuzzing ? "mud-button-filled-error" : "mud-button-filled-primary")" style="width: 100%; justify-content: center; height: 32px;" @onclick="ToggleFuzzer" type="button">
+                    @(_isFuzzing ? "Stop Stress Test" : "Run Stress Test")
+                </button>
+                <button class="mud-button mud-button-filled-secondary" style="width: 100%; justify-content: center; font-size: 10px; height: 30px;" @onclick="() => SetFuzzerMode(!_bypassFuzzing)" type="button">
+                    Engine: @(_bypassFuzzing ? "Bypass (Unmanaged)" : "Blazor VDOM")
+                </button>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 2px 0;">CRDT Sandbox</h4>
+            <p style="color: #64748b; font-size: 10px; margin: 0 0 10px 0; line-height: 1.3;">AWORSet offline conflict convergence simulator.</p>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="padding: 8px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 4px;">
+                    <div style="font-size: 9px; font-weight: 700; color: #475569; margin-bottom: 4px; text-transform: uppercase;">Node A (Offline)</div>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="number" class="hud-input" style="width: 50%; height: 26px; font-size: 11px;" @bind="NodeADeposit" placeholder="Deposit" />
+                        <select class="hud-input hud-select" style="width: 50%; height: 26px; padding: 2px 20px 2px 6px; font-size: 11px;" @bind="NodeAActiveState">
+                            <option value="Active">Active</option>
+                            <option value="Tombstoned">Tombstoned</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="padding: 8px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 4px;">
+                    <div style="font-size: 9px; font-weight: 700; color: #475569; margin-bottom: 4px; text-transform: uppercase;">Node B (Offline)</div>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="number" class="hud-input" style="width: 50%; height: 26px; font-size: 11px;" @bind="NodeBDeposit" placeholder="Deposit" />
+                        <select class="hud-input hud-select" style="width: 50%; height: 26px; padding: 2px 20px 2px 6px; font-size: 11px;" @bind="NodeBActiveState">
+                            <option value="Active">Active</option>
+                            <option value="Tombstoned">Tombstoned</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="mud-button mud-button-filled-primary" style="width: 100%; justify-content: center; height: 32px;" @onclick="ConvergeCRDT" type="button">
+                    Converge Replicas
+                </button>
+
+                @if (MergedResultState != null)
+                {
+                    <div style="padding: 8px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; font-family: monospace; font-size: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                            <span style="color: #64748b;">Merged State:</span>
+                            <span style="font-weight: 700; color: @(MergedResultState.Value.LogicalState == CashbookRules.EntityState.Tombstoned ? "#dc2626" : "#16a34a")">
+                                @MergedResultState.Value.LogicalState.ToString()
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #64748b;">Merged Deposit:</span>
+                            <span style="font-weight: 600; color: #0f172a;">@MergedResultState.Value.Deposit.ToString("N2") ZAR</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Cashbook CashbookModel = new();
+    private List<CashbookLine> _lines = new();
+    private bool _isDevToolsOpen = false;
+    private int _maxSlabIndex = 0;
+
+    private void ToggleDevTools()
+    {
+        _isDevToolsOpen = !_isDevToolsOpen;
+    }
+
+    private double ActualDeposits => _lines.Where(l => l.LogicalState == CashbookRules.EntityState.Active).Sum(l => l.Deposit);
+    private double ActualPayments => _lines.Where(l => l.LogicalState == CashbookRules.EntityState.Active).Sum(l => l.Payment);
+    private double NetCashFlow => ActualDeposits - ActualPayments;
+
+    private bool _isFuzzing = false;
+    private bool _bypassFuzzing = true;
+    private Timer? _fuzzTimer;
+    private Timer? _telemetryTimer;
+    private double BypassFps = 0;
+    private int BypassRows = 0;
+    private bool TelemetryHasModule = false;
+    private bool TelemetryHasHeap = false;
+    private string TelemetryHeapResolver = "none";
+    private long TotalMutations = 0;
+    private long LastMutationCount = 0;
+    private double Mps = 0;
+    private double LastBatchMs = 0;
+    private Stopwatch _sw = new();
+    private Stopwatch _telemetrySw = new();
+
+    private double NodeADeposit = 500.0;
+    private string NodeAActiveState = "Active";
+    private double NodeBDeposit = 1000.0;
+    private string NodeBActiveState = "Tombstoned";
+    private CashbookRules.CashbookLineRecord? MergedResultState;
+
+    protected override void OnInitialized()
+    {
+        Model = CashbookModel;
+        base.OnInitialized();
+        _telemetrySw.Start();
+
+        for (int i = 1; i <= 15; i++)
+        {
+            var line = new CashbookLine
+            {
+                Id = i,
+                LineNo = i,
+                CashbookId = 1,
+                AccountCode = $"ACC-0{i % 4 + 1}",
+                Description = $"Ledger Line #{i}",
+                Reference = $"REF-{1000 + i}",
+                Deposit = i % 2 == 0 ? i * 150.0 : 0.0,
+                Payment = i % 2 != 0 ? i * 75.0 : 0.0,
+                ExchangeRate = 1.0,
+                TaxAmount = i % 2 == 0 ? (i * 150.0) * 0.15 : (i * 75.0) * 0.15,
+                Reconciled = i % 3 == 0,
+                SlabIndex = i,
+                Module = (DemoCashbook.Models.CashbookModule)(i % 3 + 1),
+                TxDate = DateTime.Now.AddDays(-i)
+            };
+            line.Validate();
+            line.PropertyChanged += OnLinePropertyChanged;
+            _lines.Add(line);
+        }
+
+        _maxSlabIndex = _lines.Count > 0 ? _lines.Max(l => l.SlabIndex) : 0;
+
+        _telemetryTimer = new Timer(500);
+        _telemetryTimer.Elapsed += async (s, e) => await UpdateBypassTelemetry();
+        _telemetryTimer.Start();
+    }
+
+    private void OnLinePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (sender is CashbookLine line && line.SlabIndex > 0)
+        {
+            WebWorkerBridge.SetObjectValues(line.SlabIndex, (int)line.Deposit, (int)line.Payment, (int)line.TaxAmount);
+            WebWorkerBridge.SetObjectState(line.SlabIndex, line.DirtyFlags, line.BusyFlags, line.ErrorFlags);
+        }
+
+        if (!VavidComponentBase.SuppressSurgicalUpdates)
+        {
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        
+        if (firstRender)
+        {
+            WebWorkerBridge.Initialize(10000); 
+            WebWorkerBridge.SetMagicPulse();
+
+            foreach (var line in _lines)
+            {
+                WebWorkerBridge.SetObjectValues(line.SlabIndex, (int)line.Deposit, (int)line.Payment, (int)line.TaxAmount);
+                WebWorkerBridge.SetObjectState(line.SlabIndex, line.DirtyFlags, line.BusyFlags, line.ErrorFlags);
+            }
+
+            var ptr = WebWorkerBridge.GetStatePointer();
+            var len = WebWorkerBridge.GetSlabLength();
+
+            try 
+            {
+                await JSRuntime.InvokeVoidAsync("__VAVID_INITIALIZE_INDUSTRIAL_BYPASS__", (long)ptr, len);
+                await JSRuntime.InvokeVoidAsync("__VAVID_SET_MAX_SLAB_INDEX__", _maxSlabIndex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"JS Bypass Init Failed: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task UpdateBypassTelemetry()
+    {
+        double elapsedSec = _telemetrySw.Elapsed.TotalSeconds;
+        _telemetrySw.Restart();
+        if (elapsedSec <= 0) elapsedSec = 0.5;
+
+        try 
+        {
+            var telemetry = await JSRuntime.InvokeAsync<TelemetryData>("__VAVID_GET_TELEMETRY__");
+            if (telemetry != null)
+            {
+                BypassFps = telemetry.Fps;
+                BypassRows = telemetry.ActiveRows;
+                TelemetryHasModule = telemetry.HasModule;
+                TelemetryHasHeap = telemetry.HasHeap;
+                TelemetryHeapResolver = telemetry.HeapResolver;
+            }
+        }
+        catch { }
+
+        var currentCount = Interlocked.Read(ref TotalMutations);
+        Mps = (currentCount - LastMutationCount) / elapsedSec;
+        LastMutationCount = currentCount;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void AddLine()
+    {
+        int newNo = _lines.Count + 1;
+        var line = new CashbookLine
+        {
+            Id = newNo,
+            LineNo = newNo,
+            CashbookId = 1,
+            AccountCode = "ACC-GEN",
+            Description = $"Ledger Line #{newNo}",
+            Reference = $"REF-{1000 + newNo}",
+            Deposit = 100.0,
+            Payment = 0.0,
+            ExchangeRate = 1.0,
+            TaxAmount = 15.0,
+            Reconciled = false,
+            SlabIndex = newNo,
+            Module = DemoCashbook.Models.CashbookModule.GeneralLedger,
+            TxDate = DateTime.Now
+        };
+        line.Validate();
+        line.PropertyChanged += OnLinePropertyChanged;
+        _lines.Add(line);
+
+        _maxSlabIndex = Math.Max(_maxSlabIndex, line.SlabIndex);
+        _ = JSRuntime.InvokeVoidAsync("__VAVID_SET_MAX_SLAB_INDEX__", _maxSlabIndex);
+
+        WebWorkerBridge.SetObjectValues(line.SlabIndex, (int)line.Deposit, (int)line.Payment, (int)line.TaxAmount);
+        WebWorkerBridge.SetObjectState(line.SlabIndex, line.DirtyFlags, line.BusyFlags, line.ErrorFlags);
+        
+        StateHasChanged();
+    }
+
+    private void DeleteLine(CashbookLine line)
+    {
+        line.PropertyChanged -= OnLinePropertyChanged;
+        _lines.Remove(line);
+        if (line.SlabIndex > 0)
+        {
+            WebWorkerBridge.SetObjectState(line.SlabIndex, System.UInt128.Zero, System.UInt128.Zero, System.UInt128.Zero);
+            WebWorkerBridge.SetObjectValues(line.SlabIndex, 0, 0, 0);
+        }
+        
+        for (int i = 0; i < _lines.Count; i++)
+        {
+            _lines[i].LineNo = i + 1;
+        }
+
+        _maxSlabIndex = _lines.Count > 0 ? _lines.Max(l => l.SlabIndex) : 0;
+        _ = JSRuntime.InvokeVoidAsync("__VAVID_SET_MAX_SLAB_INDEX__", _maxSlabIndex);
+
+        StateHasChanged();
+    }
+
+    private void ClearLines()
+    {
+        foreach (var line in _lines)
+        {
+            line.PropertyChanged -= OnLinePropertyChanged;
+            if (line.SlabIndex > 0)
+            {
+                WebWorkerBridge.SetObjectState(line.SlabIndex, System.UInt128.Zero, System.UInt128.Zero, System.UInt128.Zero);
+                WebWorkerBridge.SetObjectValues(line.SlabIndex, 0, 0, 0);
+            }
+        }
+        _lines.Clear();
+        _maxSlabIndex = 0;
+        _ = JSRuntime.InvokeVoidAsync("__VAVID_SET_MAX_SLAB_INDEX__", 0);
+        StateHasChanged();
+    }
+
+    private void ToggleFuzzer()
+    {
+        _isFuzzing = !_isFuzzing;
+        if (_isFuzzing)
+        {
+            _fuzzTimer = new Timer(50);
+            _fuzzTimer.Elapsed += (s, e) => RunFuzzCycle();
+            _fuzzTimer.Start();
+        }
+        else
+        {
+            _fuzzTimer?.Stop();
+            _fuzzTimer?.Dispose();
+            _fuzzTimer = null;
+
+            if (_bypassFuzzing)
+            {
+                FlushSlabToCsharp();
+            }
+        }
+    }
+
+    private void FlushSlabToCsharp()
+    {
+        foreach (var line in _lines)
+        {
+            if (line.SlabIndex > 0)
+            {
+                WebWorkerBridge.GetObjectValues(line.SlabIndex, out int dep, out int pay, out int tax);
+                line.Deposit = dep;
+                line.Payment = pay;
+                line.TaxAmount = tax;
+                line.Validate();
+            }
+        }
+        StateHasChanged();
+    }
+
+    private async Task SetFuzzerMode(bool bypass)
+    {
+        _bypassFuzzing = bypass;
+        if (!bypass)
+        {
+            FlushSlabToCsharp();
+        }
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("__VAVID_SET_BYPASS_ENABLED__", bypass);
+        }
+        catch {}
+    }
+
+    private void RunFuzzCycle()
+    {
+        if (!_isFuzzing) return;
+        if (_lines.Count == 0) return;
+
+        _sw.Restart();
+        int baseMutations = Math.Min(500, _lines.Count * 10);
+        int mutations = Random.Shared.Next((int)(baseMutations * 0.8), (int)(baseMutations * 1.2));
+
+        if (_bypassFuzzing)
+        {
+            Parallel.For(0, mutations, i => 
+            {
+                int idx = Random.Shared.Next(0, _lines.Count);
+                var line = _lines[idx];
+                int newDeposit = Random.Shared.Next(0, 1000);
+                int newPayment = Random.Shared.Next(0, 1000);
+                int newTax = (int)(Math.Max(newDeposit, newPayment) * 0.15);
+
+                WebWorkerBridge.SetObjectValues(line.SlabIndex, newDeposit, newPayment, newTax);
+                
+                bool mutexError = newDeposit > 0 && newPayment > 0;
+                System.UInt128 dirtyMask = (System.UInt128)0x01;
+                System.UInt128 errorMask = mutexError ? (System.UInt128)0x02 : (System.UInt128)0x00;
+                WebWorkerBridge.SetObjectState(line.SlabIndex, dirtyMask, (System.UInt128)0, errorMask);
+            });
+        }
+        else
+        {
+            try
+            {
+                VavidComponentBase.SuppressSurgicalUpdates = true;
+                Parallel.For(0, mutations, i => 
+                {
+                    int idx = Random.Shared.Next(0, _lines.Count);
+                    var line = _lines[idx];
+                    if (Random.Shared.Next(0, 10) > 5)
+                    {
+                        line.Deposit = Random.Shared.Next(0, 1000);
+                        line.Payment = 0;
+                    }
+                    else
+                    {
+                        line.Payment = Random.Shared.Next(0, 1000);
+                        line.Deposit = 0;
+                    }
+                    line.TaxAmount = Math.Max(line.Deposit, line.Payment) * 0.15;
+                    line.Validate();
+                });
+            }
+            finally
+            {
+                VavidComponentBase.SuppressSurgicalUpdates = false;
+            }
+        }
+
+        Interlocked.Add(ref TotalMutations, mutations);
+        _sw.Stop();
+        LastBatchMs = _sw.Elapsed.TotalMilliseconds;
+        
+        if (!_bypassFuzzing)
+        {
+            InvokeAsync(StateHasChanged);
+        }
+
+        if (_fuzzTimer != null)
+        {
+            _fuzzTimer.Interval = Random.Shared.Next(40, 60);
+        }
+    }
+
+    private void ConvergeCRDT()
+    {
+        var nodeALine = new CashbookRules.CashbookLineRecord(
+            999, 999, 1, "REF-A", DateTime.Now, CashbookRules.CashbookModule.GeneralLedger,
+            "ACC-01", "Node A Offline Edit", "REF-A", NodeADeposit, 0.0, 1.0, 0.0, 0.0, 0.0, false,
+            NodeAActiveState == "Active" ? CashbookRules.EntityState.Active : CashbookRules.EntityState.Tombstoned
+        );
+
+        var nodeBLine = new CashbookRules.CashbookLineRecord(
+            999, 999, 1, "REF-B", DateTime.Now, CashbookRules.CashbookModule.GeneralLedger,
+            "ACC-02", "Node B Offline Edit", "REF-B", NodeBDeposit, 0.0, 1.0, 0.0, 0.0, 0.0, false,
+            NodeBActiveState == "Active" ? CashbookRules.EntityState.Active : CashbookRules.EntityState.Tombstoned
+        );
+
+        MergedResultState = CashbookRules.Rules.resolveLineLogicalCollision(nodeALine, nodeBLine);
+        
+        StateHasChanged();
+    }
+
+    public class TelemetryData
+    {
+        public double Fps { get; set; }
+        public int ActiveRows { get; set; }
+        public bool Enabled { get; set; }
+        public bool HasModule { get; set; }
+        public bool HasHeap { get; set; }
+        public string HeapResolver { get; set; } = "";
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        _telemetryTimer?.Dispose();
+        _fuzzTimer?.Dispose();
+        await base.DisposeAsync();
+    }
+}

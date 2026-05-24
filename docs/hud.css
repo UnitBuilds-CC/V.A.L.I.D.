@@ -1,0 +1,63 @@
+/* V.A.V.I.D. HUD Styles - "X-Ray" View */
+
+.valid-dirty {
+    outline: 2px solid #ff4444 !important;
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.5) !important;
+    animation: valid-pulse 2s infinite;
+}
+
+.valid-busy {
+    outline: 2px solid #3498db !important;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5) !important;
+    animation: valid-spin 1s linear infinite;
+}
+
+.valid-error {
+    outline: 2px solid #e74c3c !important;
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.8) !important;
+}
+
+@keyframes valid-spin {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes valid-pulse {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
+    }
+}
+
+[data-valid-prop] {
+    transition: outline 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Tooltip trigger area */
+[data-valid-prop]:hover::after {
+    content: "V.A.L.I.D. Protected";
+    position: absolute;
+    background: #333;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    transform: translateY(-20px);
+    pointer-events: none;
+}

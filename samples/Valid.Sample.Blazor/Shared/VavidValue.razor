@@ -1,0 +1,36 @@
+@using Valid
+
+<span class="@Class" 
+      vavid-bit="@BitIndex" 
+      vavid-format="@Format">
+    @FormattedValue
+</span>
+
+@code {
+    [CascadingParameter] public IValidObject? Parent { get; set; }
+    
+    [Parameter, EditorRequired] public string Property { get; set; } = "";
+    
+    [Parameter] public string Format { get; set; } = "";
+    
+    [Parameter] public string Class { get; set; } = "";
+
+    private int BitIndex => Parent?.GetBitIndex(Property) ?? -1;
+
+    private string FormattedValue
+    {
+        get
+        {
+            var val = Parent?.GetPropertyValue(Property);
+            if (val == null) return "";
+
+            if (Format == "currency" && val is double d)
+                return "$" + d.ToString("N2");
+            
+            if (val is bool b)
+                return b ? "✓" : "○";
+
+            return val.ToString() ?? "";
+        }
+    }
+}

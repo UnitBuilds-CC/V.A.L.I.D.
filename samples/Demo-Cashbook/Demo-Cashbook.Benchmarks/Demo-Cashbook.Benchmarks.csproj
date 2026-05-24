@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
+    <PackageReference Include="VALID" Version="3.0.3" />
+    <PackageReference Include="VALID.FSharp" Version="3.0.1" />
+    <PackageReference Include="FSharp.Core" Version="10.1.201" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CashbookRules\CashbookRules.fsproj" />
+    <ProjectReference Include="..\Demo-Cashbook.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,9 @@
+@using Valid
+
+<td class="p-2 text-right font-mono">
+    <VavidValue Property="Amount" Format="currency" Class="text-cyan-400" />
+</td>
+
+@code {
+    [Parameter] public AxiomEntry Value { get; set; } = default!;
+}

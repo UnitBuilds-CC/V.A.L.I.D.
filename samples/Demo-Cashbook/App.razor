@@ -1,0 +1,14 @@
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(DemoCashbook.Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(DemoCashbook.Layout.MainLayout)">
+            <p role="alert" style="color: #ef4444; font-family: monospace; text-align: center; margin-top: 5rem;">
+                [ERROR 404] INSTABILITY DETECTED: SECURE PATH NOT FOUND.
+            </p>
+        </LayoutView>
+    </NotFound>
+</Router>

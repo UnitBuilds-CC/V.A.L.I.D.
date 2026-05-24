@@ -1,0 +1,81 @@
+@inherits VavidComponent<AxiomEntry>
+@using Valid
+@using Microsoft.AspNetCore.Components.Web
+
+<CascadingValue Value="(IValidObject)Value">
+<tr class="vavid-data-row @(IsActive ? "active-row" : "") vavid-obj-context h-[45px] hover:bg-cyan-900/10 transition-colors border-b border-cyan-900/20"
+    vavid-obj="@Value.GetHashCode()"
+    @onclick="OnClick"
+    @onkeydown="OnKeyDown"
+    tabindex="0">
+    
+    <td class="p-2 pl-4 text-[10px] text-cyan-500/50 border-r border-cyan-900/20">
+        #@Value.LineId.ToString("D7")
+    </td>
+    
+    <td class="p-2 border-r border-cyan-900/20">
+         <VavidValue Property="AccountCode" Class="text-cyan-100" />
+    </td>
+
+    <td class="p-2 border-r border-cyan-900/20">
+        <VavidValue Property="Description" Class="text-xs text-cyan-100/70 italic" />
+    </td>
+
+    <td class="p-2 border-r border-cyan-900/20 text-right">
+         <VavidValue Property="Amount" Format="currency" Class="font-mono text-green-400" />
+    </td>
+
+    <td class="p-2 border-r border-cyan-900/20 text-center">
+        <VavidValue Property="IsProcessed" />
+    </td>
+
+    <td class="p-2 text-right pr-4">
+        <span class="text-[9px] font-mono text-cyan-700">0x@Value.DirtyFlags.ToString("X32")</span>
+    </td>
+</tr>
+
+@if (IsActive)
+{
+    <tr class="vavid-row-footer bg-cyan-950/20">
+        <td colspan="100" class="p-0">
+            <div class="px-4 py-2 flex flex-col gap-2">
+                <ValidErrorStrip Model="@Value" />
+                
+                <div class="flex justify-between items-center text-[10px] text-cyan-500/50">
+                    <div class="flex gap-4">
+                        <span>CONTEXT: <b>LINE_ITEM_V3</b></span>
+                        <span>UUID: @Value.GetHashCode()</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="px-2 py-0.5 rounded border border-cyan-500/30 hover:bg-cyan-500/20 transition-all">EDIT</button>
+                        <button class="px-2 py-0.5 rounded border border-red-500/30 hover:bg-red-500/20 text-red-400 transition-all">DELETE</button>
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
+}
+</CascadingValue>
+
+<style>
+    .vavid-data-row {
+        cursor: pointer;
+        outline: none;
+    }
+    .vavid-data-row.active-row {
+        background: rgba(0, 255, 255, 0.05) !important;
+        border-bottom: none;
+    }
+    .vavid-status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+}

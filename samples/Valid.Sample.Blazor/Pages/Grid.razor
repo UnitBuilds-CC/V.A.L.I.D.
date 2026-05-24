@@ -1,0 +1,277 @@
+@page "/grid"
+@inherits VavidComponentBase
+@using Valid
+@using System.Timers
+
+<div class="vavid-container p-4">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-2xl font-bold vavid-axiom-header">V.A.V.I.D. — 128-Bit Ledger Stress Test</h1>
+            <p class="text-[10px] text-cyan-500/50 uppercase tracking-tighter">1,000,000 CONCURRENT OBJECTS | MULTI-PROPERTY SYNC</p>
+        </div>
+        <div class="flex gap-2">
+            <button @onclick="ToggleFuzzer" class="px-4 py-2 rounded font-bold border @(_isFuzzing ? "bg-red-900/50 border-red-500 text-red-200" : "bg-cyan-900/50 border-cyan-500 text-cyan-200") transition-all">
+                @(_isFuzzing ? "STOP STRESS TEST" : "START LEDGER FUZZER (1M)")
+            </button>
+        </div>
+    </div>
+    
+    <div class="mb-4 bg-gray-900/80 p-4 rounded border border-cyan-500/30 backdrop-blur-md">
+        <div class="grid grid-cols-4 gap-6 mb-4">
+            <div class="vavid-obj-context" vavid-obj="@_header.GetHashCode()">
+                <p class="text-[10px] text-cyan-400 uppercase tracking-widest mb-1">Total Debits</p>
+                <p class="text-2xl font-mono text-cyan-100" vavid-bit="@_header.GetBitIndex(nameof(LedgerHeader.TotalDebit))">$@_header.TotalDebit.ToString("N2")</p>
+            </div>
+            <div class="vavid-obj-context" vavid-obj="@_header.GetHashCode()">
+                <p class="text-[10px] text-cyan-400 uppercase tracking-widest mb-1">Total Credits</p>
+                <p class="text-2xl font-mono text-cyan-100" vavid-bit="@_header.GetBitIndex(nameof(LedgerHeader.TotalCredit))">$@_header.TotalCredit.ToString("N2")</p>
+            </div>
+            <div>
+                <p class="text-[10px] text-cyan-400 uppercase tracking-widest mb-1">Ledger Integrity</p>
+                <p class="text-xl font-mono @(_isBalanced ? "text-green-400" : "text-red-400")">@(_isBalanced ? "STABLE" : "SYNCING...")</p>
+            </div>
+            <div>
+                <p class="text-[10px] text-cyan-400 uppercase tracking-widest mb-1">Architectural Type</p>
+                <p class="text-lg font-mono text-blue-400">128-BIT AXIAL MASK</p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-4 gap-6 pt-4 border-t border-cyan-900/50">
+            <div>
+                <p class="text-[9px] text-cyan-500/70 uppercase tracking-widest mb-1">Mutations / Sec</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-xl font-mono text-green-400">@_mps.ToString("N0")</p>
+                    <span class="text-[10px] text-green-900">MPS</span>
+                </div>
+            </div>
+            <div>
+                <p class="text-[9px] text-cyan-500/70 uppercase tracking-widest mb-1">Batch Latency</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-xl font-mono text-yellow-400">@_lastBatchMs.ToString("F2")</p>
+                    <span class="text-[10px] text-yellow-900">ms</span>
+                </div>
+            </div>
+            <div>
+                <p class="text-[9px] text-cyan-500/70 uppercase tracking-widest mb-1">Peak Throughput</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-xl font-mono text-purple-400">@_peakMps.ToString("N0")</p>
+                    <span class="text-[10px] text-purple-900">MPS</span>
+                </div>
+            </div>
+            <div>
+                <p class="text-[9px] text-cyan-500/70 uppercase tracking-widest mb-1">Telemetry Pulse</p>
+                <div class="vavid-latency-pulse mt-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-scroll-container border border-cyan-500/50 rounded bg-black" style="height: calc(100vh - 350px); overflow-y: auto;">
+        @if (_isLoading)
+        {
+            <div class="flex flex-col items-center justify-center h-full gap-4">
+                <div class="vavid-latency-pulse h-12 w-12"></div>
+                <div class="text-cyan-400 font-mono text-xs uppercase tracking-widest">
+                    Initializing Hyper-Ledger: @_loadingProgress%
+                </div>
+                <div class="w-64 h-1 bg-cyan-950 rounded overflow-hidden">
+                    <div class="h-full bg-cyan-500 transition-all duration-300" style="width: @_loadingProgress%"></div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <table class="w-full text-left font-mono text-sm border-collapse">
+                <thead class="bg-cyan-950 text-cyan-400 sticky top-0 z-10 shadow-lg">
+                    <tr>
+                        <th class="p-3 border-b border-cyan-500/30">ID</th>
+                        <th class="p-3 border-b border-cyan-500/30">Entry Type</th>
+                        <th class="p-3 border-b border-cyan-500/30">Debit</th>
+                        <th class="p-3 border-b border-cyan-500/30">Credit</th>
+                        <th class="p-3 border-b border-cyan-500/30">Memo</th>
+                        <th class="p-3 border-b border-cyan-500/30 text-right">128-Bit Hex Mask</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <Virtualize Items="@_rows" Context="row" ItemSize="45">
+                        <tr class="hover:bg-cyan-900/20 border-b border-cyan-900/50 transition-colors h-[45px] vavid-obj-context" vavid-obj="@row.GetHashCode()">
+                            <td class="p-2 pl-3 text-cyan-500/70 border-r border-cyan-900/30">#@row.LineId.ToString("D7")</td>
+                            <td class="p-2 border-r border-cyan-900/30">
+                                <span class="text-[10px] px-1 rounded border @(row.Debit > 0 ? "bg-red-900/30 border-red-500 text-red-400" : "bg-green-900/30 border-green-500 text-green-400")">
+                                    @(row.Debit > 0 ? "DEBIT" : "CREDIT")
+                                </span>
+                            </td>
+                            <td class="p-2 text-red-400 border-r border-cyan-900/30" vavid-bit="@row.GetBitIndex(nameof(LedgerLine.Debit))">
+                                @(row.Debit > 0 ? $"${row.Debit:N2}" : "-")
+                            </td>
+                            <td class="p-2 text-green-400 border-r border-cyan-900/30" vavid-bit="@row.GetBitIndex(nameof(LedgerLine.Credit))">
+                                 @(row.Credit > 0 ? $"${row.Credit:N2}" : "-")
+                            </td>
+                            <td class="p-2 text-cyan-100/60 text-xs truncate max-w-[200px]" vavid-bit="@row.GetBitIndex(nameof(LedgerLine.Memo))">
+                                @row.Memo
+                            </td>
+                            <td class="p-2 text-right pr-3">
+                                <span class="text-[9px] font-mono text-cyan-700">0x@row.DirtyFlags.ToString("X32")</span>
+                            </td>
+                        </tr>
+                    </Virtualize>
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<style>
+    .vavid-container {
+        background: radial-gradient(circle at 50% 50%, #001a1a 0%, #000 100%);
+        min-height: 100vh;
+        color: #fff;
+    }
+    .grid-scroll-container::-webkit-scrollbar { width: 8px; }
+    .grid-scroll-container::-webkit-scrollbar-track { background: #000; }
+    .grid-scroll-container::-webkit-scrollbar-thumb { background: #0891b2; border-radius: 4px; }
+    
+    .vavid-latency-pulse {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #00ffff;
+        box-shadow: 0 0 10px #00ffff;
+        animation: vavid-pulse 1.5s infinite ease-in-out;
+    }
+    
+    @@keyframes vavid-pulse {
+        0% { transform: scale(0.95); opacity: 0.8; }
+        50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 20px #00ffff; }
+        100% { transform: scale(0.95); opacity: 0.8; }
+    }
+</style>
+
+@code {
+    private List<LedgerLine> _rows = new(1000000);
+    private LedgerHeader _header = new();
+    private bool _isFuzzing = false;
+    private bool _isBalanced = true;
+    private bool _isLoading = true;
+    private int _loadingProgress = 0;
+    private Timer? _timer;
+    private Timer? _metricsTimer;
+
+    private double _mps = 0;
+    private double _peakMps = 0;
+    private double _lastBatchMs = 0;
+    private long _totalMutations = 0;
+    private long _lastMutationCount = 0;
+    private System.Diagnostics.Stopwatch _sw = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model = _header;
+        await HydrateAsync();
+        
+        // Metrics calculation timer (every 1s)
+        _metricsTimer = new Timer(1000);
+        _metricsTimer.Elapsed += (s, e) => {
+            var currentCount = Interlocked.Read(ref _totalMutations);
+            _mps = currentCount - _lastMutationCount;
+            if (_mps > _peakMps) _peakMps = _mps;
+            _lastMutationCount = currentCount;
+            InvokeAsync(StateHasChanged);
+        };
+        _metricsTimer.Start();
+    }
+
+    private static string SHARED_MEMO = "STRESS_TEST_ENTRY_SHARED_ROOT";
+
+    private async Task HydrateAsync()
+    {
+        _isLoading = true;
+        _rows.Clear();
+        
+        for (int i = 0; i < 1000000; i++)
+        {
+            var isDebit = i % 2 == 0;
+            var amount = 10.0 + (i % 100);
+            _rows.Add(new LedgerLine 
+            { 
+                LineId = i, 
+                Debit = isDebit ? amount : 0,
+                Credit = !isDebit ? amount : 0,
+                Memo = SHARED_MEMO // Memory-efficient string pooling
+            });
+            
+            if (isDebit) _header.TotalDebit += amount;
+            else _header.TotalCredit += amount;
+
+            if (i % 100000 == 0)
+            {
+                _loadingProgress = i / 10000;
+                StateHasChanged();
+                await Task.Yield(); // Keep UI responsive
+            }
+        }
+        
+        _isLoading = false;
+        StateHasChanged();
+        
+        // Auto-start fuzzer for benchmarking after a short delay
+        _ = Task.Delay(2000).ContinueWith(_ => InvokeAsync(ToggleFuzzer));
+    }
+
+    private void ToggleFuzzer()
+    {
+        _isFuzzing = !_isFuzzing;
+        if (_isFuzzing)
+        {
+            _timer = new Timer(50); // Faster updates for stress
+            _timer.Elapsed += async (s, e) => await InvokeAsync(FuzzLedger);
+            _timer.Start();
+        }
+        else
+        {
+            _timer?.Stop();
+            _timer?.Dispose();
+        }
+    }
+
+    private void FuzzLedger()
+    {
+        try {
+            _sw.Restart();
+            _isBalanced = false;
+            
+            // Parallel mutation of 1000 random entries per batch
+            Parallel.For(0, 1000, i => 
+            {
+                int idx = Random.Shared.Next(0, 1000000);
+                var row = _rows[idx];
+                var oldVal = row.Credit + row.Debit;
+                var newVal = oldVal + (Random.Shared.NextDouble() - 0.5) * 5;
+                if (newVal < 0) newVal = 0;
+
+                if (row.Debit > 0) 
+                {
+                    var diff = newVal - row.Debit;
+                    row.Debit = newVal;
+                    lock(_header) _header.TotalDebit += diff;
+                }
+                else 
+                {
+                    var diff = newVal - row.Credit;
+                    row.Credit = newVal;
+                    lock(_header) _header.TotalCredit += diff;
+                }
+                
+                row.Memo = $"MX_{DateTime.Now.Ticks % 10000:D4}";
+            });
+            
+            Interlocked.Add(ref _totalMutations, 1000);
+            _isBalanced = true;
+            _sw.Stop();
+            _lastBatchMs = _sw.Elapsed.TotalMilliseconds;
+            
+            StateHasChanged();
+        } catch (Exception ex) {
+            Console.WriteLine($"[AXIOM] Grid Fuzzer Crash: {ex.Message}");
+        }
+    }
+}

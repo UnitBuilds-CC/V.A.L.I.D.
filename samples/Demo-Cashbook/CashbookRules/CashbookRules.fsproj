@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Models.fs" />
+    <Compile Include="Rules.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="VALID.FSharp" Version="3.0.1" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,70 @@
+@using Valid
+@namespace Valid.Sample.Blazor.Components
+@inherits VavidSurgicalComponentBase
+
+<div class="benchmark-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; gap: 8px; padding: 8px; border-bottom: 1px solid #eee; align-items: center;">
+    <div style="font-size: 0.9rem; color: #666;">
+        <strong>Row @ItemIndex</strong>
+    </div>
+    <VavidInput Model="Item" BitIndex="0" @bind-Value="Item!.Value1" />
+    
+    <div class="vavid-industrial-numeric">
+        <input type="number" 
+               class="industrial-input vavid-sync-value" 
+               data-vavid-offset="48" 
+               @bind="Item!.Quantity" 
+               @bind:event="oninput" />
+    </div>
+
+    <div class="vavid-industrial-numeric">
+        <input type="number" 
+               class="industrial-input vavid-sync-value" 
+               data-vavid-offset="52" 
+               @bind="Item!.UnitPrice" 
+               @bind:event="oninput" />
+    </div>
+
+    <div class="vavid-industrial-numeric">
+        <span class="industrial-total vavid-sync-text" data-vavid-offset="56">
+            @Item!.Total
+        </span>
+    </div>
+
+    <VavidInput Model="Item" BitIndex="4" @bind-Value="Item!.Value5" />
+</div>
+
+@code {
+    [Parameter] public BenchmarkItem? Item { get; set; }
+    [Parameter] public int ItemIndex { get; set; }
+
+    private bool _hasRendered = false;
+
+    protected override void OnParametersSet()
+    {
+        // Simply pass the Item to the base class Model parameter
+        base.Model = this.Item;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _hasRendered = true;
+            // MISSION 27: The Passive Lockdown.
+            // After the initial render, this component will never re-render via Blazor.
+            // The JS Bypass will take over for all bitmask/state visualization.
+            LockRender();
+        }
+    }
+
+    private void LockRender()
+    {
+        // Internal flag in base or custom logic to return false for ShouldRender
+        // In our case, we'll manually ensure ShouldRender() returns false.
+        // I will add a 'DisableSurgicalUpdates' or similar to VavidSurgicalComponentBase
+        // but for now, we'll use a local trick.
+    }
+    
+    // We override ShouldRender to permanently lock after first render
+    protected override bool ShouldRender() => !_hasRendered;
+}

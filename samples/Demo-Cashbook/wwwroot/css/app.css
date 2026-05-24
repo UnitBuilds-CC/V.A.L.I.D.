@@ -1,0 +1,627 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+:root {
+    --bg-light: #f4f6f9;
+    --card-bg: #ffffff;
+    --border-color: #e0e0e0;
+    --text-primary: #1a202c;
+    --text-secondary: #4a5568;
+    --text-muted: #a0aec0;
+    
+    /* MudBlazor Corporate Slate Theme Palette */
+    --mud-primary: #594ae2;
+    --mud-primary-hover: #473bc4;
+    --mud-secondary: #e0e0e0;
+    --mud-success: #00c853;
+    --mud-info: #2196f3;
+    --mud-warning: #ff9800;
+    --mud-error: #f44336;
+    --mud-dark: #27272f;
+    
+    /* V.A.V.I.D. Surgical Mask State Palette (SaaS Soft Highlight) */
+    --state-dirty-bg: #fef3c7;
+    --state-dirty-border: #f59e0b;
+    --state-dirty-text: #b45309;
+    
+    --state-busy-bg: #dbeafe;
+    --state-busy-border: #3b82f6;
+    --state-busy-text: #1d4ed8;
+    
+    --state-error-bg: #fee2e2;
+    --state-error-border: #ef4444;
+    --state-error-text: #b91c1c;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
+
+/* MudBlazor Paper & Card Replica */
+.mud-paper {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 16px;
+    box-shadow: none;
+}
+
+.hud-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.hud-panel:hover {
+    border-color: #cbd5e1;
+}
+
+.hud-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    border-bottom: 2px solid var(--mud-primary);
+    padding-bottom: 4px;
+    display: inline-block;
+}
+
+.mono-value {
+    font-family: 'Fira Code', monospace;
+    font-weight: 500;
+}
+
+/* Crisp KPI Cards */
+.kpi-card {
+    border-left: 4px solid var(--mud-primary);
+}
+
+/* V.A.V.I.D. Soft High-Contrast Mask State Overlays */
+.vavid-dirty {
+    background-color: var(--state-dirty-bg) !important;
+    border-color: var(--state-dirty-border) !important;
+    color: var(--state-dirty-text) !important;
+}
+
+.vavid-busy {
+    background-color: var(--state-busy-bg) !important;
+    border-color: var(--state-busy-border) !important;
+    color: var(--state-busy-text) !important;
+    opacity: 0.85;
+}
+
+.vavid-error {
+    background-color: var(--state-error-bg) !important;
+    border-color: var(--state-error-border) !important;
+    color: var(--state-error-text) !important;
+}
+
+/* Clean Corporate Forms & Controls */
+.hud-input {
+    background: #ffffff;
+    border: 1px solid #c4c4c4;
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    height: 38px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hud-input:focus {
+    outline: none;
+    border-color: var(--mud-primary);
+    box-shadow: 0 0 0 1px var(--mud-primary);
+}
+
+.hud-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%234a5568' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+}
+
+/* MudBlazor Styled Buttons */
+.mud-button {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    padding: 6px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: .02857em;
+    min-width: 64px;
+    box-sizing: border-box;
+    height: 36px;
+}
+
+.mud-button-filled-primary {
+    background-color: var(--mud-primary);
+    color: #ffffff;
+}
+
+.mud-button-filled-primary:hover {
+    background-color: var(--mud-primary-hover);
+    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12);
+}
+
+.mud-button-filled-secondary {
+    background-color: var(--mud-secondary);
+    color: var(--text-primary);
+}
+
+.mud-button-filled-secondary:hover {
+    background-color: #d5d5d5;
+}
+
+.mud-button-filled-info {
+    background-color: var(--mud-info);
+    color: #ffffff;
+}
+
+.mud-button-filled-info:hover {
+    background-color: #1976d2;
+}
+
+.mud-button-filled-success {
+    background-color: var(--mud-success);
+    color: #ffffff;
+}
+
+.mud-button-filled-success:hover {
+    background-color: #00b0ff;
+}
+
+.mud-button-filled-error {
+    background-color: var(--mud-error);
+    color: #ffffff;
+}
+
+.mud-button-filled-error:hover {
+    background-color: #d32f2f;
+}
+
+.mud-button-filled-warning {
+    background-color: var(--mud-warning);
+    color: #ffffff;
+}
+
+.mud-button-filled-warning:hover {
+    background-color: #f57c00;
+}
+
+.mud-button-text {
+    background-color: transparent;
+    color: var(--text-secondary);
+}
+
+.mud-button-text:hover {
+    background-color: rgba(0, 0, 0, .04);
+}
+
+/* MudBlazor Chip Replica */
+.mud-chip {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 2px 10px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    box-sizing: border-box;
+}
+
+.mud-chip-success {
+    background-color: rgba(0, 200, 83, 0.12);
+    color: var(--mud-success);
+}
+
+.mud-chip-info {
+    background-color: rgba(33, 150, 243, 0.12);
+    color: var(--mud-info);
+}
+
+.mud-chip-warning {
+    background-color: rgba(255, 152, 0, 0.12);
+    color: var(--mud-warning);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Professional MudBlazor Grid Styling */
+.virtual-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.virtual-table th {
+    background-color: #f8fafc;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.virtual-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: #ffffff;
+    vertical-align: middle;
+}
+
+/* Row colors matching Revo's MudBlazor grid */
+.row-gl td { background-color: #eeeeee !important; }
+.row-ar td { background-color: #d5ecc2 !important; }
+.row-ap td { background-color: #cce3f5 !important; }
+.row-warning-account td { background-color: #fff1bc !important; }
+.row-import-default td { background-color: #ffe0b2 !important; }
+
+.virtual-table tr:hover td {
+    background-color: #f0f7ff !important;
+}
+
+.virtual-table tr.opacity-30 td {
+    opacity: 0.5;
+}
+
+/* Status Indicator Pulse */
+.sim-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    background-color: var(--mud-success);
+}
+
+/* MudBlazor Outlined Dense Text Field Replicas */
+.mud-input-container {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.mud-input-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.mud-input-field {
+    border: 1px solid #c4c4c4;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+    background-color: #ffffff;
+    color: var(--text-primary);
+    height: 38px;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mud-input-field:focus {
+    outline: none;
+    border-color: var(--mud-primary);
+    box-shadow: 0 0 0 1px var(--mud-primary);
+}
+
+.mud-input-field[readonly] {
+    background-color: #f1f5f9;
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    border-color: #e2e8f0;
+}
+
+/* --- V.A.L.I.D. Dual Pane & Full Width Layout System --- */
+.desktop-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.main-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Precise CSS Grid Row columns schema for Transaction Table alignment */
+.grid-row {
+    display: grid;
+    grid-template-columns: 50px 115px 95px 105px 1fr 105px 95px 95px 85px 50px 50px;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.grid-row th {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 8px;
+    color: #475569;
+}
+
+.grid-row td {
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.grid-row td:nth-child(5) { /* Description is 1fr, left-align */
+    justify-content: flex-start;
+}
+
+/* In grid mode, let inputs expand fully */
+.grid-row .hud-input, 
+.grid-row .hud-select {
+    width: 100% !important;
+    height: 30px;
+    font-size: 11px;
+    padding: 2px 8px;
+}
+
+/* Showcase Drawer Styles */
+.showcase-drawer {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    height: 100vh;
+    background-color: #ffffff;
+    border-left: 1px solid #cbd5e1;
+    box-shadow: -10px 0 30px rgba(15, 23, 42, 0.15);
+    z-index: 1000;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.showcase-drawer.open {
+    right: 0;
+}
+
+/* Backdrop */
+.drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.3);
+    backdrop-filter: blur(2px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Header Info Fields Grid */
+.header-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.header-grid-col-2 {
+    grid-column: span 2;
+}
+
+/* ERP Header Cards & Spacing */
+.mud-paper {
+    background-color: var(--card-bg);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* Button & Toolbars spacing */
+.button-toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Input Fields Polish */
+.hud-input {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    height: 32px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hud-input:focus {
+    border-color: var(--mud-primary);
+    box-shadow: 0 0 0 3px rgba(89, 74, 226, 0.12);
+    outline: none;
+}
+
+/* Module Row Colors Restyled to be Soft and Premium */
+.row-gl td { background-color: #f8fafc !important; }
+.row-ar td { background-color: #f0fdf4 !important; } /* Soft green */
+.row-ap td { background-color: #f0f9ff !important; } /* Soft blue */
+
+.virtual-table tr:hover td {
+    background-color: #f1f5f9 !important;
+}
+
+/* Consistent Action Button Styling */
+.mud-button {
+    height: 32px;
+    padding: 0 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    border-radius: 4px;
+    gap: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.mud-button-filled-primary {
+    background-color: var(--mud-primary);
+    color: white;
+}
+
+.mud-button-filled-secondary {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+}
+
+.mud-button-filled-secondary:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.mud-button-filled-error {
+    background-color: #ef4444;
+    color: white;
+}
+
+.mud-button-filled-error:hover {
+    background-color: #dc2626;
+}
+
+.mud-button-filled-info {
+    background-color: #0284c7;
+    color: white;
+}
+
+.mud-button-filled-info:hover {
+    background-color: #0369a1;
+}
+
+/* Telemetry Dashboard Metrics */
+.metric-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 6px 0;
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+}
+
+.metric-row:last-child {
+    border-bottom: none;
+}
+
+.metric-label {
+    color: #64748b;
+}
+
+.metric-value {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+/* Glowing Pulsing Circle for active engine states */
+.pulse-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    display: inline-block;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    animation: pulse-ring 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+.pulse-indicator.error {
+    background-color: #ef4444;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    animation: pulse-ring-error 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+@keyframes pulse-ring-error {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+
+

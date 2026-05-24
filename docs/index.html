@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>V.A.V.I.D. HUD Demo</title>
+    <link rel="stylesheet" href="hud.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 40px;
+            background: #f0f2f5;
+        }
+
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .hud-status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #333;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>V.A.V.I.D. HUD "X-Ray" Demo</h1>
+    <p>This page mocks a Blazor environment hosting V.A.L.I.D. Business Objects.</p>
+
+    <div class="form-container">
+        <div class="field">
+            <label>Batch Name:</label>
+            <input type="text" id="batchName" data-valid-prop="Name" value="Initial Name">
+        </div>
+        <div class="field">
+            <label>Total Amount:</label>
+            <input type="number" id="batchTotal" data-valid-prop="TotalAmount" value="1000">
+        </div>
+        <button onclick="toggleDirty()">Simulate Change</button>
+    </div>
+
+    <div class="hud-status" id="hudLog">
+        V.A.V.I.D. Status: Scanning...
+    </div>
+
+    <script src="bridge.js"></script>
+    <script>
+        // Mocking the Blazor object registration and instance
+        const mockBatchMetadata = {
+            "typeName": "AxiomBatch",
+            "managedBy": "Valid.Sample.AxiomBatchDto",
+            "properties": [
+                { "name": "Name", "type": "string", "rules": [{ "name": "Required", "args": [] }] },
+                { "name": "TotalAmount", "type": "decimal", "rules": [{ "name": "Range", "args": [1, 10000] }] }
+            ]
+        };
+
+        let isDirtyMock = false;
+
+        const mockInstance = {
+            getDeltaJson: function () {
+                return isDirtyMock ? JSON.ruleStringify({ "TotalAmount": 2000 }) : "{}";
+            }
+        };
+
+        // Helper for mock delta
+        JSON.ruleStringify = (val) => JSON.stringify(val);
+
+        // Discovery registration
+        window.__VALID_OBJECTS__ = [
+            {
+                elementId: "batch-form-1",
+                metadata: mockBatchMetadata,
+                instance: mockInstance
+            }
+        ];
+
+        function toggleDirty() {
+            isDirtyMock = !isDirtyMock;
+            document.getElementById('hudLog').innerText = `V.A.V.I.D. Status: Objects Found: 1. Dirty: ${isDirtyMock}`;
+            if (isDirtyMock) {
+                document.getElementById('batchTotal').value = 2000;
+            } else {
+                document.getElementById('batchTotal').value = 1000;
+            }
+        }
+
+        // Initialize tooltips from bridge
+        setTimeout(() => window.VAVID.showRuleTooltips(), 500);
+        document.getElementById('hudLog').innerText = `V.A.V.I.D. Status: Objects Found: 1. Metadata Loaded.`;
+    </script>
+</body>
+
+</html>

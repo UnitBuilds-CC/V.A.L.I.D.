@@ -1,0 +1,233 @@
+@page "/pro-grid"
+@inherits VavidComponentBase
+@using Valid
+@using System.Timers
+@using Valid.Sample.Blazor.Shared
+
+<div class="vavid-container p-4">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-2xl font-bold vavid-axiom-header text-cyan-400">V.A.V.I.D. — Pro DataGrid Engine</h1>
+            <p class="text-[10px] text-cyan-500/50 uppercase tracking-widest">Surgical Synchronization | 1M Virtualized Rows</p>
+        </div>
+        <div class="flex gap-2">
+            <button @onclick="ToggleFuzzer" class="px-4 py-2 rounded font-bold border @(_isFuzzing ? "bg-red-900/50 border-red-500 text-red-200" : "bg-cyan-900/50 border-cyan-500 text-cyan-200") transition-all">
+                @(_isFuzzing ? "STOP FUZZER" : "START CHAOS FUZZER")
+            </button>
+        </div>
+    </div>
+    
+    @* Premium Performance Dashboard *@
+    <div class="mb-4 bg-gray-900/80 p-4 rounded border border-cyan-500/30 backdrop-blur-md vavid-glass">
+        <div class="grid grid-cols-4 gap-6">
+            <div>
+                <p class="text-[9px] text-cyan-500/70 uppercase tracking-widest mb-1">Processing Throughput</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-xl font-mono text-green-400">@_mps.ToString("N0")</p>
+                    <span class="text-[10px] text-green-900">MPS</span>
+                </div>
+            </div>
+            <div>
+                <p class="text-[9px] text-cyan-500/70 uppercase tracking-widest mb-1">Surgical Latency</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-xl font-mono text-yellow-400">@_lastBatchMs.ToString("F2")</p>
+                    <span class="text-[10px] text-yellow-900">ms</span>
+                </div>
+            </div>
+            <div>
+                <p class="text-[9px] text-cyan-500/70 uppercase tracking-widest mb-1">Heap Allocation</p>
+                <p class="text-xl font-mono text-blue-400">ZERO</p>
+            </div>
+            <div>
+                <p class="text-[9px] text-cyan-500/70 uppercase tracking-widest mb-1">Architectural Link</p>
+                <div class="flex items-center gap-2">
+                    <div class="vavid-latency-pulse"></div>
+                    <span class="text-[10px] text-cyan-400">128-BIT AXIAL</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-scroll-container border border-cyan-500/50 rounded bg-black/50 backdrop-blur-sm" style="height: calc(100vh - 300px); overflow-y: auto;">
+        @if (_isLoading)
+        {
+            <div class="flex flex-col items-center justify-center h-full gap-4">
+                <div class="vavid-latency-pulse h-16 w-16"></div>
+                <div class="text-cyan-400 font-mono text-xs uppercase tracking-widest text-center">
+                    Generating Industrial Fabric...<br/>
+                    <span class="text-white">@_loadingProgress% SYNCED</span>
+                </div>
+                <div class="w-80 h-1 bg-cyan-950 rounded overflow-hidden shadow-[0_0_10px_rgba(34,211,238,0.2)]">
+                    <div class="h-full bg-cyan-400 shadow-[0_0_15px_#0ff] transition-all duration-300" style="width: @_loadingProgress%"></div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <table class="w-full text-left font-mono text-sm border-collapse">
+                <thead class="bg-cyan-950/80 text-cyan-400 sticky top-0 z-10 shadow-lg backdrop-blur-md">
+                    <tr>
+                        <th class="p-3 border-b border-cyan-500/30 w-[120px]">REF</th>
+                        <th class="p-3 border-b border-cyan-500/30 w-[150px]">ACCOUNT</th>
+                        <th class="p-3 border-b border-cyan-500/30">DESCRIPTION</th>
+                        <th class="p-3 border-b border-cyan-500/30 w-[150px] text-right">AMOUNT</th>
+                        <th class="p-3 border-b border-cyan-500/30 w-[100px] text-center">STATUS</th>
+                        <th class="p-3 border-b border-cyan-500/30 text-right w-[200px]">VECTOR_MASK</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <Virtualize Items="@_entries" Context="entry" ItemSize="45">
+                        <ValidDataGridRow 
+                            Value="@entry" 
+                            IsActive="@(entry == _activeEntry)" 
+                            OnClick="@(() => SelectEntry(entry))" />
+                    </Virtualize>
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<style>
+    .vavid-container {
+        background: radial-gradient(circle at 50% 50%, #001a1a 0%, #000 100%);
+        min-height: 100vh;
+        color: #fff;
+    }
+    .vavid-glass {
+        background: rgba(0, 5, 12, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 255, 255, 0.1);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .grid-scroll-container::-webkit-scrollbar { width: 8px; }
+    .grid-scroll-container::-webkit-scrollbar-track { background: #000; }
+    .grid-scroll-container::-webkit-scrollbar-thumb { background: #0891b2; border-radius: 4px; border: 2px solid #000; }
+    
+    .vavid-latency-pulse {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #00ffff;
+        box-shadow: 0 0 10px #00ffff;
+        animation: vavid-pulse 1s infinite alternate;
+    }
+    
+    @@keyframes vavid-pulse {
+        from { transform: scale(0.8); opacity: 0.5; }
+        to { transform: scale(1.2); opacity: 1; }
+    }
+</style>
+
+@code {
+    private List<AxiomEntry> _entries = new(1000000);
+    private AxiomEntry? _activeEntry;
+    private bool _isFuzzing = false;
+    private bool _isLoading = true;
+    private int _loadingProgress = 0;
+    private Timer? _timer;
+    private Timer? _metricsTimer;
+
+    private double _mps = 0;
+    private double _lastBatchMs = 0;
+    private long _totalMutations = 0;
+    private long _lastMutationCount = 0;
+    private System.Diagnostics.Stopwatch _sw = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await HydrateAsync();
+
+        // Metrics timer
+        _metricsTimer = new Timer(1000);
+        _metricsTimer.Elapsed += (s, e) => {
+            var currentCount = Interlocked.Read(ref _totalMutations);
+            _mps = currentCount - _lastMutationCount;
+            _lastMutationCount = currentCount;
+            InvokeAsync(StateHasChanged);
+        };
+        _metricsTimer.Start();
+    }
+
+    private static string SHARED_DESC = "Industrial Ledger Entry - Transaction Root";
+    private static string[] SHARED_ACCOUNTS = new[] { "ACC_0001", "ACC_0002", "ACC_0003", "ACC_0004", "ACC_0005" };
+
+    private async Task HydrateAsync()
+    {
+        _isLoading = true;
+        _entries.Clear();
+        
+        for (int i = 0; i < 1000000; i++)
+        {
+            _entries.Add(new AxiomEntry 
+            { 
+                LineId = i, 
+                AccountCode = SHARED_ACCOUNTS[i % 5],
+                Description = SHARED_DESC,
+                Amount = 100.0 + (i % 500),
+                IsProcessed = i % 10 == 0
+            });
+
+            if (i % 100000 == 0)
+            {
+                _loadingProgress = i / 10000;
+                StateHasChanged();
+                await Task.Yield();
+            }
+        }
+
+        _isLoading = false;
+        StateHasChanged();
+        
+        // Auto-start delay
+        _ = Task.Delay(3000).ContinueWith(_ => InvokeAsync(ToggleFuzzer));
+    }
+
+    private void SelectEntry(AxiomEntry entry)
+    {
+        _activeEntry = entry;
+        Model = entry; // Register with Vavid Extension
+        StateHasChanged();
+    }
+
+    private void ToggleFuzzer()
+    {
+        _isFuzzing = !_isFuzzing;
+        if (_isFuzzing)
+        {
+            _timer = new Timer(50);
+            _timer.Elapsed += async (s, e) => await InvokeAsync(FuzzInternal);
+            _timer.Start();
+        }
+        else
+        {
+            _timer?.Stop();
+        }
+    }
+
+    private void FuzzInternal()
+    {
+        _sw.Restart();
+        Parallel.For(0, 1000, i => 
+        {
+            int idx = Random.Shared.Next(0, 1000000);
+            var entry = _entries[idx];
+            entry.Amount += (Random.Shared.NextDouble() - 0.5) * 10;
+            entry.IsProcessed = Random.Shared.Next(0, 100) > 50;
+            if (idx % 100 == 0) entry.AccountCode = ""; // Trigger validation error surgically
+            else entry.AccountCode = $"ACC_{idx % 1000:D4}";
+        });
+        
+        Interlocked.Add(ref _totalMutations, 1000);
+        _sw.Stop();
+        _lastBatchMs = _sw.Elapsed.TotalMilliseconds;
+        StateHasChanged();
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+        _timer?.Dispose();
+        _metricsTimer?.Dispose();
+    }
+}

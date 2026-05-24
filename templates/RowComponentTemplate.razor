@@ -1,0 +1,32 @@
+@inherits VavidComponent<DtoTemplate>
+@using YourApp.Models
+@using Valid
+
+<tr class="vavid-row"
+    data-vavid-slab-index="@Value.SlabIndex"
+    vavid-obj="@Value.GetHashCode().ToString()">
+    
+    <td>
+        <input type="text" 
+               class="hud-input" 
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(DtoTemplate.Name))"
+               @bind="Value.Name" 
+               @bind:event="oninput" />
+    </td>
+
+    <td>
+        <input type="number" 
+               class="hud-input text-right" 
+               data-vavid-offset="48"
+               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-bit="@Value.GetBitIndex(nameof(DtoTemplate.Value))"
+               @bind="Value.Value" 
+               @bind:event="oninput" 
+               step="0.01" />
+    </td>
+</tr>
+
+@code {
+    // Custom row properties or methods can be added here
+}

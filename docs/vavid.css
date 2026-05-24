@@ -1,0 +1,26 @@
+/* V.A.V.I.D. Zero-Wire Visual State — Driven by ulong bitmask */
+
+.vavid-error {
+    box-shadow: 0 0 8px 2px rgba(255, 0, 0, 0.7) !important;
+    border-color: red !important;
+}
+
+.vavid-dirty {
+    border-left: 4px solid #ffbf00 !important;
+}
+
+.vavid-busy {
+    animation: vavid-pulse-blue 1.5s infinite;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+@keyframes vavid-pulse-blue {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+
+    100% {
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+}

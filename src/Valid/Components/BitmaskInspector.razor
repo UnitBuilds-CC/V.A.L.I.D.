@@ -1,0 +1,83 @@
+@namespace Valid
+@using Valid
+
+<div class="vavid-bitmask-inspector">
+    <h3>Bitmask Inspector: @(Model?.GetType().Name ?? "No Model")</h3>
+    
+    <div class="vavid-bit-grid">
+        @for (int i = 0; i < 128; i++)
+        {
+            var bitIndex = i;
+            <div class="vavid-bit @GetBitClass(bitIndex)" 
+                 title="Bit @bitIndex: @GetBitLegend(bitIndex)">
+            </div>
+        }
+    </div>
+
+    <div class="vavid-legend">
+        <span class="legend-item dirty">Dirty</span>
+        <span class="legend-item busy">Busy</span>
+        <span class="legend-item error">Error</span>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] public IValidObject? Model { get; set; }
+
+    private string GetBitClass(int bitIndex)
+    {
+        if (Model == null) return "";
+        
+        var isDirty = (Model.DirtyFlags & ((System.UInt128)1 << bitIndex)) != 0;
+        var isBusy = (Model.BusyFlags & ((System.UInt128)1 << bitIndex)) != 0;
+        var isError = (Model.ErrorFlags & ((System.UInt128)1 << bitIndex)) != 0;
+
+        var classes = new List<string>();
+        if (isDirty) classes.Add("is-dirty");
+        if (isBusy) classes.Add("is-busy");
+        if (isError) classes.Add("is-error");
+        
+        return string.Join(" ", classes);
+    }
+
+    private string GetBitLegend(int bitIndex)
+    {
+        if (Model == null) return "Unknown";
+        // In a real implementation, we'd map bitIndex back to property name
+        return $"Index {bitIndex}";
+    }
+}
+
+<style>
+    .vavid-bitmask-inspector {
+        background: rgba(10, 10, 15, 0.9);
+        border: 1px solid #444;
+        padding: 16px;
+        border-radius: 8px;
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+    }
+    .vavid-bit-grid {
+        display: grid;
+        grid-template-columns: repeat(16, 1fr);
+        gap: 4px;
+        margin: 16px 0;
+    }
+    .vavid-bit {
+        width: 12px;
+        height: 12px;
+        background: #222;
+        border-radius: 2px;
+        transition: all 0.2s ease;
+    }
+    .vavid-bit.is-dirty { background: #ffd700; box-shadow: 0 0 5px #ffd700; }
+    .vavid-bit.is-busy { background: #00ffff; box-shadow: 0 0 5px #00ffff; }
+    .vavid-bit.is-error { background: #ff4444; box-shadow: 0 0 5px #ff4444; }
+    
+    .vavid-legend { display: flex; gap: 16px; font-size: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-item::before { content: ''; width: 10px; height: 10px; border-radius: 2px; }
+    .legend-item.dirty::before { background: #ffd700; }
+    .legend-item.busy::before { background: #00ffff; }
+    .legend-item.error::before { background: #ff4444; }
+</style>

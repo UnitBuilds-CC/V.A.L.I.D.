@@ -1,0 +1,35 @@
+@namespace Valid
+@using Valid
+@inherits VavidSurgicalComponentBase
+
+<div class="vavid-input-wrapper">
+    <input class="@ControlClass"
+           value="@Value"
+           @oninput="OnInput"
+           data-vavid-obj="@ModelHash"
+           data-vavid-slab-index="@(Model is ValidObjectBase vob ? vob.SlabIndex : -1)"
+           data-vavid-bit="@BitIndex" />
+    
+    @if (HasError)
+    {
+        <div class="vavid-error-overlay">!</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    private string ModelHash => Model?.GetHashCode().ToString() ?? "0";
+    
+    private bool IsDirty => Model != null && (Model.DirtyFlags & ((System.UInt128)1 << BitIndex)) != 0;
+    private bool HasError => Model != null && (Model.ErrorFlags & ((System.UInt128)1 << BitIndex)) != 0;
+
+    private string ControlClass => $"vavid-control {(IsDirty ? "vavid-dirty" : "")} {(HasError ? "vavid-error" : "")}";
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        var newValue = e.Value?.ToString() ?? "";
+        await ValueChanged.InvokeAsync(newValue);
+    }
+}

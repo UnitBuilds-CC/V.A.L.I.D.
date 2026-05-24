@@ -1,0 +1,79 @@
+@page "/benchmark"
+@using Valid
+@using System.Diagnostics
+@inject NavigationManager nav
+
+<div class="benchmark-container" style="padding: 2rem;">
+    <h1>V.A.L.I.D. Performance Benchmark</h1>
+    <p>Simulating 5,000 active fields on a single page.</p>
+
+    <div class="controls" style="margin-bottom: 2rem; background: #f0f0f0; padding: 1rem; border-radius: 8px;">
+        <button @onclick="ToggleMode" class="btn btn-primary">
+            Switch to @(UseSurgical ? "Standard" : "Surgical") Mode
+        </button>
+        <span style="margin-left: 1rem; font-weight: bold;">
+            Current Mode: <span style="color: @(UseSurgical ? "green" : "red")">@(UseSurgical ? "SURGICAL (Vectorized)" : "STANDARD (O(N) Diffing)")</span>
+        </span>
+        
+        <div style="margin-top: 1rem;">
+            <button @onclick="RunPulseTest" class="btn btn-warning">Trigger Random Update</button>
+            <span style="margin-left: 1rem;">Last Update Duration: <strong>@LastDuration ms</strong></span>
+        </div>
+    </div>
+
+    @if (Model != null)
+    {
+        <div class="field-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px;">
+            @for (int i = 0; i < Model.Items.Count; i++)
+            {
+                var item = Model.Items[i];
+                <VavidInput Model="item" BitIndex="0" @bind-Value="item.Value1" />
+                <VavidInput Model="item" BitIndex="1" @bind-Value="item.Value2" />
+                <VavidInput Model="item" BitIndex="2" @bind-Value="item.Value3" />
+                <VavidInput Model="item" BitIndex="3" @bind-Value="item.Value4" />
+                <VavidInput Model="item" BitIndex="4" @bind-Value="item.Value5" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private BenchmarkModel? Model;
+    private bool UseSurgical = true;
+    private double LastDuration = 0;
+    private Stopwatch sw = new();
+
+    protected override void OnInitialized()
+    {
+        Model = new BenchmarkModel(5000);
+    }
+
+    private void ToggleMode()
+    {
+        UseSurgical = !UseSurgical;
+    }
+
+    private void RunPulseTest()
+    {
+        if (Model == null) return;
+
+        // Choose a random item to update
+        var rnd = new Random();
+        var itemToIndex = rnd.Next(Model.Items.Count);
+        var item = Model.Items[itemToIndex];
+
+        sw.Restart();
+        
+        // Mutate the value
+        item.Value1 = "Update " + rnd.Next(100);
+        
+        // In Standard mode, we force the whole page to re-render
+        if (!UseSurgical)
+        {
+            StateHasChanged();
+        }
+        
+        sw.Stop();
+        LastDuration = sw.Elapsed.TotalMilliseconds;
+    }
+}

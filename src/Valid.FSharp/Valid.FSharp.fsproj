@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>VALID.FSharp</PackageId>
+    <Version>3.0.1</Version>
+    <Description>F# Logic Engine for the V.A.L.I.D. Framework — CRDTs, Causal Chains, and Axiom Resolution.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Models.fs" />
+    <Compile Include="CrdtEngine.fs" />
+    <Compile Include="AxiomCore.fs" />
+  </ItemGroup>
+</Project>
