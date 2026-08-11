@@ -9,8 +9,8 @@
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>VALID</PackageId>
-    <Version>3.0.3</Version>
-    <Description>Vectorized Asynchronous Logic &amp; Intelligent Diagnostics — VALID 3.0.3</Description>
+    <Version>3.1.0</Version>
+    <Description>Vectorized Asynchronous Logic &amp; Intelligent Diagnostics — VALID 3.1.0</Description>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>

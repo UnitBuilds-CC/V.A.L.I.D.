@@ -1,6 +1,8 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 
 namespace Valid;
 
@@ -17,6 +19,7 @@ public static partial class WebWorkerBridge
     }
 
     [JSExport]
+    [SupportedOSPlatform("browser")]
     public static bool IsSlabReady()
     {
         return _stateSlab != null;
@@ -80,6 +83,7 @@ public static partial class WebWorkerBridge
     }
 
     [JSExport]
+    [SupportedOSPlatform("browser")]
     public static unsafe nint GetStatePointer()
     {
         if (_stateSlab == null) return 0;
@@ -87,6 +91,7 @@ public static partial class WebWorkerBridge
     }
 
     [JSExport]
+    [SupportedOSPlatform("browser")]
     public static int GetSlabLength()
     {
         return _stateSlab?.Length ?? 0;
@@ -103,6 +108,7 @@ public static partial class WebWorkerBridge
     }
 
     [JSExport]
+    [SupportedOSPlatform("browser")]
     public static unsafe bool IsDirty(int index)
     {
         if (_stateSlab == null || index < 0 || index >= _stateSlab.Length) return false;

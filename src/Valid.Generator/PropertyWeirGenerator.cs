@@ -7,22 +7,28 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Valid.Generator;
 
+/// <summary>
+/// Roslyn source generator that emits boilerplate for [ValidObject]-attributed classes.
+/// Generates bitmask tracking, JSON serialization, property accessors, and test helpers.
+/// </summary>
 [Generator]
 public class PropertyWeirGenerator : ISourceGenerator
 {
     private static readonly DiagnosticDescriptor TooManyPropertiesError = new DiagnosticDescriptor(
         id: "VALID001",
         title: "Too many VALID properties",
-        messageFormat: "The VALID object '{0}' has {1} properties, which exceeds the 128-property limit of the UInt128 bitmask engine.",
+        messageFormat: "The VALID object '{0}' has {1} properties which exceeds the 128-property limit of the UInt128 bitmask engine",
         category: "Valid.Generator",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: "VALID objects are limited to 128 properties to ensure O(1) bitmask performance and avoid overflow.");
 
+    /// <inheritdoc />
     public void Initialize(GeneratorInitializationContext context)
     {
     }
 
+    /// <inheritdoc />
     public void Execute(GeneratorExecutionContext context)
     {
         var syntaxTrees = context.Compilation.SyntaxTrees;
@@ -383,6 +389,8 @@ public class PropertyWeirGenerator : ISourceGenerator
                     var jsonMethod = GetJsonMethod(prop.Type);
                     if (jsonMethod == "GetAny")
                         sb.AppendLine($"                    case \"{prop.Name}\": {prop.Name} = JsonSerializer.Deserialize<{prop.Type.ToDisplayString()}>(ref reader)!; break;");
+                    else if (jsonMethod == "GetString")
+                        sb.AppendLine($"                    case \"{prop.Name}\": {prop.Name} = reader.GetString()!; break;");
                     else
                         sb.AppendLine($"                    case \"{prop.Name}\": {prop.Name} = reader.{jsonMethod}(); break;");
                 }
@@ -493,7 +501,7 @@ public class PropertyWeirGenerator : ISourceGenerator
 
         sb.AppendLine("        public override System.Type GetPropertyType(string propertyName)");
         sb.AppendLine("        {");
-        sb.AppendLine("            if (TryGetPropertyType(propertyName, out var type)) return type;");
+        sb.AppendLine("            if (TryGetPropertyType(propertyName, out var type)) return type!;");
         sb.AppendLine("            throw new KeyNotFoundException(propertyName);");
         sb.AppendLine("        }");
         sb.AppendLine();
@@ -550,6 +558,8 @@ public class PropertyWeirGenerator : ISourceGenerator
                 var jsonMethod = GetJsonMethod(prop.Type);
                 if (jsonMethod == "GetAny")
                     sb.AppendLine($"                case \"{prop.Name}\": this.{prop.Name} = JsonSerializer.Deserialize<{prop.Type.ToDisplayString()}>(ref reader)!; break;");
+                else if (jsonMethod == "GetString")
+                    sb.AppendLine($"                case \"{prop.Name}\": this.{prop.Name} = reader.GetString()!; break;");
                 else
                     sb.AppendLine($"                case \"{prop.Name}\": this.{prop.Name} = reader.{jsonMethod}(); break;");
             }

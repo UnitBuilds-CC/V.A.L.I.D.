@@ -217,8 +217,14 @@ public sealed class SqliteOutbox : IDisposable
             if (ids.Count > 0)
             {
                 using var markCmd = _connection.CreateCommand();
-                var idList = string.Join(",", ids);
-                markCmd.CommandText = $"UPDATE Outbox SET Processed = 1 WHERE Id IN ({idList})";
+                var paramNames = new List<string>();
+                for (int i = 0; i < ids.Count; i++)
+                {
+                    var paramName = $"@id{i}";
+                    paramNames.Add(paramName);
+                    markCmd.Parameters.AddWithValue(paramName, ids[i]);
+                }
+                markCmd.CommandText = $"UPDATE Outbox SET Processed = 1 WHERE Id IN ({string.Join(",", paramNames)})";
                 await markCmd.ExecuteNonQueryAsync();
             }
 
