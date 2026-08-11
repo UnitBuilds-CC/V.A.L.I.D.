@@ -1,25 +1,25 @@
 # Getting Started with V.A.L.I.D.
 
-**Virtualized Asynchronous Layer for Integrated Data**
+**Vectorized Asynchronous Logic & Intelligent Diagnostics**
 
-V.A.L.I.D. is a lightweight business object framework for .NET 8+ that replaces CSLA with a fraction of the ceremony. Define objects with attributes, persist with shuttles, validate with rules — all wired through standard NuGet packages.
+V.A.L.I.D. is a high-performance business object framework for .NET 8+ that replaces CSLA with a fraction of the ceremony. Define objects with attributes, persist with shuttles, validate with rules — all wired through standard NuGet packages. State tracking uses 128-bit `UInt128` bitmasks for zero-allocation dirty/busy/error tracking.
 
 ## Installation
 
 ```bash
-dotnet add package Valid.Core                        # Business objects, shuttles, rules
-dotnet add package Valid.Infrastructure.Components   # Blazor components (ValidField, ValidForm)
+dotnet add package Valid                                # Core business objects, shuttles, rules
+dotnet add package Valid.Infrastructure.Components      # Blazor components (ValidField, ValidForm)
 ```
 
 If using central package management (`Directory.Packages.Props`):
 
 ```xml
 <PropertyGroup>
-  <ValidVersion>1.1.0</ValidVersion>
+  <ValidVersion>3.0.3</ValidVersion>
 </PropertyGroup>
 
 <ItemGroup>
-  <PackageVersion Include="Valid.Core" Version="$(ValidVersion)" />
+  <PackageVersion Include="Valid" Version="$(ValidVersion)" />
   <PackageVersion Include="Valid.Infrastructure.Components" Version="$(ValidVersion)" />
 </ItemGroup>
 ```
@@ -27,38 +27,35 @@ If using central package management (`Directory.Packages.Props`):
 Then in your module csproj (no version needed):
 
 ```xml
-<PackageReference Include="Valid.Core" />
+<PackageReference Include="Valid" />
 <PackageReference Include="Valid.Infrastructure.Components" />
 ```
 
 ## Your First Business Object
 
 ```csharp
+using Valid;
 using Valid.Attributes;
-using Valid.Core;
 
 [ValidObject]
-public class Invoice : IValidObject
+public partial class Invoice : ValidObjectBase
 {
-    // --- Tracked properties ---
+    // The source generator emits backing fields, bitmask tracking, and validation.
+    // Each property is assigned a bit index in the UInt128 dirty/busy/error masks.
+
     [Required]
-    public string CustomerName { get; set; } = "";
+    public partial string CustomerName { get; set; }
 
     [Range(0, 1_000_000)]
-    public decimal Amount { get; set; }
+    public partial decimal Amount { get; set; }
 
-    public DateTime InvoiceDate { get; set; } = DateTime.Today;
-
-    // --- IValidObject plumbing ---
-    public bool IsDirty { get; private set; }
-    public bool IsBusy { get; private set; }
-    public bool IsInvalid => !Diagnostics.IsValid;
-    public DiagnosticResult Diagnostics { get; } = new();
-    public IParent? Parent { get; set; }
-
-    // ... (remaining interface members — see Core Concepts)
+    public partial DateTime InvoiceDate { get; set; }
 }
 ```
+
+> **`ValidId`**: Every `ValidObjectBase` subclass automatically receives a unique runtime identifier
+> (e.g., `valid_1`, `valid_2`). Use `invoice.ValidId` for JS bridge registration, MCP tracking,
+> and logging — never `GetHashCode()`.
 
 ## Create and Validate
 

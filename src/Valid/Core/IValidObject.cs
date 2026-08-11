@@ -1,3 +1,9 @@
+// V.A.L.I.D. Naming Convention:
+// - "Valid" prefix: Core engine types (ValidObjectBase, ValidProperty, ValidList)
+// - "Vavid" prefix: Blazor UI component types (VavidComponentBase, VavidSurgicalComponentBase)  
+// - "VAVID" (all caps): Chrome extension / HUD branding
+// - "vavid" (lowercase): JavaScript bridge global (window.vavid)
+
 namespace Valid;
 
 /// <summary>
@@ -6,6 +12,12 @@ namespace Valid;
 /// </summary>
 public interface IValidObject
 {
+    /// <summary>
+    /// Unique runtime identifier for this object instance.
+    /// Used for JS bridge registration and MCP tracking.
+    /// </summary>
+    string ValidId { get; }
+
     /// <summary>
     /// Bitmask representing properties changed since last sync.
     /// </summary>

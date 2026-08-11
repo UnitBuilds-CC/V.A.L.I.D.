@@ -2,6 +2,12 @@ using System;
 
 namespace Valid;
 
+// NOTE: This namespace defines RangeAttribute, RequiredAttribute, and StringLengthAttribute
+// which share names with types in System.ComponentModel.DataAnnotations.
+// If you need both, use fully qualified names or namespace aliases to avoid ambiguity:
+//   using ValidAttr = Valid.RangeAttribute;
+//   using DataAnnotations = System.ComponentModel.DataAnnotations;
+
 /// <summary>
 /// Marks a class to be processed by the VALID 3.0.0 generator.
 /// Encapsulates triple-mask state tracking (Dirty, Busy, Error).

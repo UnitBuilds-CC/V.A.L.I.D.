@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 using System.Text.Json;
 
@@ -10,14 +12,18 @@ namespace Valid;
 public abstract class VavidComponentBase : ComponentBase, IAsyncDisposable
 {
     [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private ILogger<VavidComponentBase>? Logger { get; set; }
 
     [Parameter] public IValidObject? Model { get; set; }
 
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private IValidObject? _currentModel;
+    private DotNetObjectReference<VavidComponentBase>? _dotNetRef;
 
     public static bool SuppressSurgicalUpdates { get; set; } = false;
+
+    private ILogger _logger => Logger ?? NullLogger<VavidComponentBase>.Instance;
 
     protected override async Task OnInitializedAsync()
     {
@@ -38,10 +44,17 @@ public abstract class VavidComponentBase : ComponentBase, IAsyncDisposable
             oldVob.PropertyChanged -= OnModelPropertyChanged;
             try 
             {
-                await JSRuntime.InvokeVoidAsync("vavid.unregisterObject", _currentModel.GetHashCode().ToString());
+                await JSRuntime.InvokeVoidAsync("vavid.unregisterObject", _currentModel.ValidId);
             }
-            catch (Exception) { }
+            catch (Exception ex) 
+            { 
+                _logger.LogWarning("[VAVID] Unregister failed: {Message}", ex.Message);
+            }
         }
+
+        // Dispose previous DotNetObjectReference to prevent GC handle leak
+        _dotNetRef?.Dispose();
+        _dotNetRef = null;
 
         _currentModel = Model;
 
@@ -51,15 +64,15 @@ public abstract class VavidComponentBase : ComponentBase, IAsyncDisposable
             
             try 
             {
-                var dotNetRef = DotNetObjectReference.Create(this);
+                _dotNetRef = DotNetObjectReference.Create(this);
                 await JSRuntime.InvokeVoidAsync("vavid.registerObject", 
-                    _currentModel.GetHashCode().ToString(), 
+                    _currentModel.ValidId, 
                     _currentModel.GetValidMetadata(),
-                    dotNetRef);
+                    _dotNetRef);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Vavid Extension Registration Failed: {ex.Message}");
+                _logger.LogWarning("Vavid Extension Registration Failed: {Message}", ex.Message);
             }
         }
     }
@@ -75,7 +88,7 @@ public abstract class VavidComponentBase : ComponentBase, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[VAVID] Reflection-Free Update Failed for {propertyName}: {ex.Message}");
+            _logger.LogWarning("[VAVID] Reflection-Free Update Failed for {Property}: {Message}", propertyName, ex.Message);
         }
     }
 
@@ -98,17 +111,17 @@ public abstract class VavidComponentBase : ComponentBase, IAsyncDisposable
         {
             _isUpdating = true;
             await JSRuntime.InvokeVoidAsync("vavid.updateState", 
-                Model.GetHashCode().ToString(), 
+                Model.ValidId, 
                 Model.DirtyFlags.ToString("X"), 
                 Model.BusyFlags.ToString("X"), 
                 Model.ErrorFlags.ToString("X"));
 
             await JSRuntime.InvokeVoidAsync("vavid.logDelta",
-                Model.GetHashCode().ToString(),
+                Model.ValidId,
                 Model.GetDeltaJson());
         }
-        catch (JSDisconnectedException) { }
-        catch (Exception) { }
+        catch (JSDisconnectedException) { /* Circuit disconnected, expected during shutdown */ }
+        catch (Exception ex) { _logger.LogWarning("[VAVID] State update failed: {Message}", ex.Message); }
         finally
         {
             _isUpdating = false;
@@ -122,10 +135,15 @@ public abstract class VavidComponentBase : ComponentBase, IAsyncDisposable
             vob.PropertyChanged -= OnModelPropertyChanged;
             try 
             {
-                await JSRuntime.InvokeVoidAsync("vavid.unregisterObject", Model.GetHashCode().ToString());
+                await JSRuntime.InvokeVoidAsync("vavid.unregisterObject", Model.ValidId);
             }
-            catch (Exception) { }
+            catch (Exception ex) 
+            { 
+                _logger.LogWarning("[VAVID] Unregister on dispose failed: {Message}", ex.Message);
+            }
         }
+        _dotNetRef?.Dispose();
+        _dotNetRef = null;
         GC.SuppressFinalize(this);
     }
 

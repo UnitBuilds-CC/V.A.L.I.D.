@@ -1,21 +1,24 @@
 # V.A.L.I.D. 3.0 Implementation Guide
 
-Welcome to the **Virtualized Asynchronous Layer for Integrated Data (V.A.L.I.D.) 3.0** implementation guide. This document explains how to set up, define, validate, and build applications using the V.A.L.I.D. high-performance framework.
+Welcome to the **Vectorized Asynchronous Logic & Intelligent Diagnostics (V.A.L.I.D.) 3.0** implementation guide. This document explains how to set up, define, validate, and build applications using the V.A.L.I.D. high-performance framework.
 
 ---
 
-## 🏛️ Core Architecture Overview
+## Core Architecture Overview
 
-V.A.L.I.D. 3.0 is a zero-allocation, ultra-high-performance business object framework designed for modern web applications running on WebAssembly. It operates on three key layers:
+V.A.L.I.D. 3.0 is a zero-allocation, ultra-high-performance business object framework designed for modern web applications running on WebAssembly. It operates on four key layers:
 
 1. **Unmanaged memory state slab**: A contiguous memory block allocated outside the GC heap. Each object instance occupies 4 slots (64 bytes) for state tracking (Dirty, Busy, and Error flags, plus numeric values).
-2. **128-Bit Quad-Mask tracking**: Instead of dirty-tracking through heavy events or reflection, V.A.L.I.D. utilizes standard C# `System.UInt128` bitmasks. This enables $O(1)$ performance and reduces tracking overhead to zero garbage collection.
+2. **128-Bit Quad-Mask tracking**: Instead of dirty-tracking through heavy events or reflection, V.A.L.I.D. utilizes `System.UInt128` bitmasks. This enables O(1) performance and reduces tracking overhead to zero garbage collection.
 3. **JS Surgical Bypass**: Directly reads and writes memory offsets in the WebAssembly shared linear memory heap (`HEAPU8`), bypassing Blazor's virtual DOM (VDOM) diffing and `StateHasChanged` cycles for massive speed gains.
 4. **F# Validation & CRDT Engine**: Pure functional rule evaluation and Observed-Remove CRDT sets for offline conflict resolution.
 
+> **Identity**: Every `ValidObjectBase` subclass receives a unique `ValidId` (e.g., `valid_1`).
+> Use `ValidId` for JS bridge registration and MCP tracking — never `GetHashCode()`.
+
 ---
 
-## ⚙️ Step 1: Framework Installation & Setup
+## Step 1: Framework Installation & Setup
 
 To integrate V.A.L.I.D. into a project, add references to the generated NuGet packages in your Blazor WebAssembly app:
 
@@ -48,7 +51,7 @@ Valid.WebWorkerBridge.Initialize(10000);
 
 ---
 
-## 📝 Step 2: Defining the Business Object (C#)
+## Step 2: Defining the Business Object (C#)
 
 Use the `[ValidObject]` and `[ValidProperty]` attributes. The Source Generator will automatically create backing fields, 128-bit property mapping, and change notification code.
 
@@ -102,7 +105,7 @@ public partial class CashbookLine : ValidObjectBase
 
 ---
 
-## 🎛️ Step 3: Writing F# Validation Rules
+## Step 3: Writing F# Validation Rules
 
 For advanced business validations and offline convergence, write F# rules targeting a structured record representation.
 
@@ -139,7 +142,7 @@ module Rules =
 
 ---
 
-## 🖥️ Step 4: Blazor Row component Integration
+## Step 4: Blazor Row Component Integration
 
 Build components that bind to the memory slab using the `vavid-obj`, `vavid-bit`, and `data-vavid-offset` attributes.
 
@@ -150,12 +153,12 @@ Build components that bind to the memory slab using the `vavid-obj`, `vavid-bit`
 
 <tr class="cashbook-row"
     data-vavid-slab-index="@Value.SlabIndex"
-    vavid-obj="@Value.GetHashCode().ToString()">
+    vavid-obj="@Value.ValidId">
     
     <td>
         <input type="text" 
                class="hud-input" 
-               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-obj="@Value.ValidId"
                vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.Description))"
                @bind="Value.Description" 
                @bind:event="oninput" />
@@ -165,7 +168,7 @@ Build components that bind to the memory slab using the `vavid-obj`, `vavid-bit`
         <input type="number" 
                class="hud-input" 
                data-vavid-offset="48"
-               vavid-obj="@Value.GetHashCode().ToString()"
+               vavid-obj="@Value.ValidId"
                vavid-bit="@Value.GetBitIndex(nameof(CashbookLine.Deposit))"
                @bind="Value.Deposit" 
                @bind:event="oninput" />
@@ -175,7 +178,7 @@ Build components that bind to the memory slab using the `vavid-obj`, `vavid-bit`
 
 ---
 
-## 📊 Step 5: parent Page Integration
+## Step 5: Parent Page Integration
 
 Configure the main page to register the state slab address with the JS bypass script.
 

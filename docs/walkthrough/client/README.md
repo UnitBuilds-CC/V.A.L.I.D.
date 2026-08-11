@@ -74,8 +74,8 @@ A Chrome/Edge extension that provides a real-time debugging HUD overlaid on any 
 | File | Lines | Purpose |
 |---|---|---|
 | `manifest.json` | 15 | Extension manifest. Injects `bridge.js` and `hud.js` + `hud.css` into pages. |
-| `bridge.js` | 21 | Discovery bridge. Polls `window.__VALID_OBJECTS__` every 1s and fires `vavid-ext-discovery` events. |
-| `hud.js` | 425 | **The full HUD.** 4 tabs: X-RAY (property inspection + value push + time travel), SECURITY (violation analysis), DELTAS (surgical delta stream), PERF (latency sparkline). Includes inspect mode with global click interceptor. |
+| `bridge.js` | 62 | Discovery bridge. Polls `window.__VALID_OBJECTS__` and fires `vavid-ext-discovery` events. Supports `startPolling()`/`stopPolling()` lifecycle control via `vavid-start-polling`/`vavid-stop-polling` messages. |
+| `hud.js` | 425 | **The full HUD.** 4 tabs: X-RAY (property inspection + value push + time travel), SECURITY (violation analysis), DELTAS (surgical delta stream), PERF (latency sparkline). Includes inspect mode with global click interceptor. All interpolated values HTML-entity-escaped via `esc()` for XSS prevention. |
 | `hud.css` | ~80 | Glassmorphism styling for the floating HUD panel. |
 
 ### HUD Tabs

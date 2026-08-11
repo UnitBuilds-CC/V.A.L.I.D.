@@ -26,20 +26,20 @@ All validation attributes inherit from `ValidationAttribute(message, code)`.
 
 | File | Purpose |
 |---|---|
-| `IValidObject.cs` | **The contract.** Defines `DirtyFlags`, `BusyFlags`, `ErrorFlags`, `StateFlags` (all `UInt128`), plus `GetDiagnostics()`, `GetValidMetadata()`, `SetPropertyValue()`, `GetDeltaJson()`, `GetPropertyType()`, `GetBitIndex()`. Also defines `DiagnosticResult` record struct. |
-| `ValidObjectBase.cs` | **Abstract base class.** Stores the four `UInt128` bitmask fields. Implements `SetProperty<T>()` which flips the dirty bit on mutation. Implements `INotifyPropertyChanged`. |
-| `VavidComponentBase.cs` | **Blazor component base.** Manages object lifecycle: hooks `PropertyChanged`, registers with JS bridge, forwards bitmask snapshots via `vavid.updateState()`, cascades the model via `CascadingValue<IValidObject>`. Contains the generic `VavidComponent<T>` subclass for zero-boilerplate component binding. |
+| `IValidObject.cs` | **The contract.** Defines `ValidId`, `DirtyFlags`, `BusyFlags`, `ErrorFlags`, `StateFlags` (all `UInt128`), plus `GetDiagnostics()`, `GetValidMetadata()`, `SetPropertyValue()`, `GetDeltaJson()`, `GetPropertyType()`, `GetBitIndex()`. Also defines `DiagnosticResult` record struct. |
+| `ValidObjectBase.cs` | **Abstract base class.** Stores the four `UInt128` bitmask fields plus `ValidId` (auto-incremented via `Interlocked.Increment`). Implements `SetProperty<T>()` which flips the dirty bit on mutation. SpinLock-safe bitmask operations. Defensive `GetStateHistory()`. Implements `INotifyPropertyChanged`. |
+| `VavidComponentBase.cs` | **Blazor component base.** Manages object lifecycle: hooks `PropertyChanged`, registers with JS bridge using `ValidId`, forwards bitmask snapshots via `vavid.updateState()`, cascades the model via `CascadingValue<IValidObject>`. Properly disposes `DotNetObjectReference` on re-sync and disposal. Contains the generic `VavidComponent<T>` subclass for zero-boilerplate component binding. |
 | `VectorClock.cs` | Logical clock record struct for CRDT causal ordering. Fields: `NodeId`, `Version`. |
 | `CrdtMerger.cs` | Last-Write-Wins field-level merge logic using `VectorClock`. Also provides `MergeMask()` for bitmask OR-merging. |
 | `WebWorkerBridge.cs` | Serialization bridge for WebWorker communication. Defines `MutationCommand` record struct with `UInt128` bitmask fields. |
-| `ValidList.cs` | Thin wrapper over `UnmanagedSlab<T>` for GC-invisible collections. |
+| `ValidList.cs` | Defines `ValidSlab<T>` (correctly-named slab-allocated collection) and marks `ValidList<T>` as `[Obsolete]`. |
 | `UnmanagedSlab.cs` | Unsafe unmanaged memory allocator using `Marshal.AllocHGlobal`. Thread-safe via lock. Bounds-checked indexer. Implements `IDisposable` with finalizer. |
 
 ### Queue (`Valid/Queue/`)
 
 | File | Purpose |
 |---|---|
-| `SqliteOutbox.cs` | Hash-chained persistent outbox for offline-first sync. Each entry stores `Payload`, `Hash` (SHA-256), and `PrevHash` for tamper detection. Uses `SemaphoreSlim` for thread safety. |
+| `SqliteOutbox.cs` | Hash-chained persistent outbox for offline-first sync. Each entry stores `Payload`, `Hash` (SHA-256), and `PrevHash` for tamper detection. Payloads encrypted with AES-GCM authenticated encryption. `DequeueAsync<T>()` for batch processing. Uses `SemaphoreSlim` for thread safety. |
 
 ### JavaScript Runtime (`Valid/wwwroot/js/vavid.js`)
 
@@ -58,7 +58,7 @@ The 246-line micro-runtime injected into Blazor. This is the **bridge between .N
 
 ## Valid.Generator (Roslyn Source Generator)
 
-A single file: `PropertyWeirGenerator.cs` (~395 lines).
+A single file: `PropertyWeirGenerator.cs` (~917 lines).
 
 **What it generates for each `[ValidObject]` class:**
 
@@ -88,7 +88,6 @@ Provides an immutable, functional alternative to C# mutation. Used by `Compariso
 | File | Purpose |
 |---|---|
 | `AxiomCore.fs` | Defines `AxiomEntryRecord` (F# record matching C# `AxiomEntry`). `mutateEntry` applies random mutations. `getDeltaJson` computes field-level diffs. |
-| `Library.fs` | Module stub. |
 
 ---
 

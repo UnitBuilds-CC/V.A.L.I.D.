@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -6,8 +7,11 @@ using System.Runtime.Intrinsics.X86;
 namespace Valid;
 
 /// <summary>
-/// Bitmask operations.
+/// Low-level SIMD-accelerated bitmask operations for bulk UInt128 blocks.
+/// These are advanced utilities for custom slab processing.
+/// Most users should use <see cref="ValidObjectBase.IsDirty"/> and related APIs instead.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Advanced)]
 public static unsafe class BitmaskOperations
 {
     /// <summary>

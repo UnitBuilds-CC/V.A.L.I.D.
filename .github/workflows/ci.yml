@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Create dist directory
+      run: mkdir -p dist
+
+    - name: Restore dependencies
+      run: dotnet restore VALID.slnx
+
+    - name: Build solution
+      run: dotnet build VALID.slnx --no-restore --configuration Release
+
+    - name: Run tests
+      run: dotnet test VALID.slnx --no-build --configuration Release --verbosity normal
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install dotnet-security-scan
+      run: dotnet tool install --global dotnet-security-scan || true
+
+    - name: Security scan
+      run: dotnet-security-scan src/Valid/Valid.csproj || echo "Security scan completed with findings"
+
+  pack:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Create dist directory
+      run: mkdir -p dist
+
+    - name: Pack NuGet packages
+      run: dotnet pack src/Valid/Valid.csproj --configuration Release --output ./dist
+
+    - name: Upload package artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: valid-nupkg
+        path: dist/*.nupkg

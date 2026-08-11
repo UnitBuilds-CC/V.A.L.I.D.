@@ -51,7 +51,7 @@ class Program
                     Console.WriteLine($"   Successfully allocated {count} elements from Arena (No GC Fragmentation). Written verify: {slab[0]}");
                     
                     arena.Reset();
-                    Console.WriteLine("   Arena reset. Memory cryptographically wiped and logically freed, but OS heap remains contiguous.");
+                    Console.WriteLine("   Arena reset. Memory zeroed and logically freed, but OS heap remains contiguous.");
                 }
             }
             

@@ -9,6 +9,12 @@
     const STORAGE_KEY = 'vavid-hud-visible';
     let isVisible = localStorage.getItem(STORAGE_KEY) !== 'false';
 
+    // Simple HTML entity escape for interpolated values
+    function esc(str) {
+        if (str == null) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
     window.addEventListener('vavid-ext-discovery', (e) => {
         const objects = e.detail;
         objects.forEach(obj => attachHUD(obj));
@@ -214,14 +220,14 @@
         return `
             <div style="margin-bottom: 15px;">
                 <div style="font-size: 10px; opacity: 0.6; margin-bottom: 2px;">MODEL_CONTEXT</div>
-                <div style="font-size: 16px; color: #fff; font-weight: 300;">${metadata.Name}</div>
-                <div style="font-size: 9px; opacity: 0.4;">OBJ_REF: ${obj.id}</div>
+                <div style="font-size: 16px; color: #fff; font-weight: 300;">${esc(metadata.Name)}</div>
+                <div style="font-size: 9px; opacity: 0.4;">OBJ_REF: ${esc(obj.id)}</div>
             </div>
 
             <div style="margin-bottom: 15px; padding: 12px; background: rgba(0,255,255,0.05); border-radius: 4px; border: 1px solid rgba(0,255,255,0.1);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div style="font-size: 14px; color: #00ffff;">${prop.Name}</div>
-                    <div style="font-size: 10px; opacity: 0.6;">TYPE: ${prop.Type || 'Unknown'}</div>
+                    <div style="font-size: 14px; color: #00ffff;">${esc(prop.Name)}</div>
+                    <div style="font-size: 10px; opacity: 0.6;">TYPE: ${esc(prop.Type || 'Unknown')}</div>
                 </div>
                 <input type="text" class="vavid-edit-input" placeholder="Push new value..." id="vavid-edit-field">
             </div>
@@ -288,7 +294,7 @@
                     errorDetails += `
                         <div style="margin-bottom: 8px; padding: 8px; background: rgba(239, 64, 64, 0.1); border-left: 3px solid #ef4444; border-radius: 2px;">
                             <div style="font-size: 11px; color: #ef4444; font-weight: bold;">VIOLATION: BIT_${i}</div>
-                            <div style="font-size: 10px; color: #fff; opacity: 0.8;">PROP: ${prop ? prop.Name : 'Internal'}</div>
+                            <div style="font-size: 10px; color: #fff; opacity: 0.8;">PROP: ${prop ? esc(prop.Name) : 'Internal'}</div>
                             <div style="font-size: 9px; opacity: 0.6;">VAL: OUT_OF_RANGE</div>
                         </div>
                     `;

@@ -23,7 +23,8 @@ public static partial class WebWorkerBridge
     }
 
     /// <summary>
-    /// Sets object state in slab.
+    /// Sets object state in slab. Writes to indices [baseIndex..baseIndex+2].
+    /// Layout per object: [dirty, busy, error, values].
     /// </summary>
     public static void SetObjectState(int slabIndex, System.UInt128 dirty, System.UInt128 busy, System.UInt128 error)
     {
@@ -31,6 +32,7 @@ public static partial class WebWorkerBridge
         if (slabIndex <= 0) return;
 
         int baseIndex = slabIndex * 4;
+        // Need indices baseIndex, baseIndex+1, baseIndex+2 to be within bounds
         if (baseIndex + 2 >= _stateSlab.Length) return;
 
         _stateSlab[baseIndex] = dirty;
@@ -39,13 +41,14 @@ public static partial class WebWorkerBridge
     }
 
     /// <summary>
-    /// Sets object values in slab.
+    /// Sets object values in slab. Writes to index [baseIndex+3].
     /// </summary>
     public static void SetObjectValues(int slabIndex, int quantity, int price, int total)
     {
         if (_stateSlab == null || slabIndex <= 0) return;
 
         int baseIndex = slabIndex * 4;
+        // Need index baseIndex+3 to be within bounds
         if (baseIndex + 3 >= _stateSlab.Length) return;
 
         ulong low = (uint)quantity | ((ulong)(uint)price << 32);

@@ -33,3 +33,9 @@ msbuild.log
 *.log
 *.tmp
 BenchmarkDotNet.Artifacts/
+
+## Diagnostics and build artifacts
+diagnostics/
+
+## Database files (outbox, samples)
+*.db

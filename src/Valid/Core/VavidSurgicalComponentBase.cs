@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 using System;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ namespace Valid;
 public abstract class VavidSurgicalComponentBase : ComponentBase, IDisposable
 {
     [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] private ILogger<VavidSurgicalComponentBase>? Logger { get; set; }
 
     [Parameter] public IValidObject? Model { get; set; }
     [Parameter] public int BitIndex { get; set; }
@@ -19,6 +22,8 @@ public abstract class VavidSurgicalComponentBase : ComponentBase, IDisposable
 
     private IValidObject? _hookedModel;
     private DotNetObjectReference<VavidSurgicalComponentBase>? _dotNetRef;
+
+    private ILogger _logger => Logger ?? NullLogger<VavidSurgicalComponentBase>.Instance;
 
     protected override void OnParametersSet()
     {
@@ -58,11 +63,14 @@ public abstract class VavidSurgicalComponentBase : ComponentBase, IDisposable
             {
                 _dotNetRef = DotNetObjectReference.Create(this);
                 await JSRuntime.InvokeVoidAsync("vavid.registerObject", 
-                    Model.GetHashCode().ToString(), 
+                    Model.ValidId, 
                     Model.GetValidMetadata(),
                     _dotNetRef);
             }
-            catch { }
+            catch (Exception ex) 
+            { 
+                _logger.LogWarning("[VAVID] Surgical component registration failed: {Message}", ex.Message);
+            }
         }
         
         _shouldRender = false;

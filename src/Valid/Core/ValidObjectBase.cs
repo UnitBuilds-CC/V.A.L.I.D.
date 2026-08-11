@@ -11,12 +11,17 @@ namespace Valid;
 /// </summary>
 public abstract class ValidObjectBase : IValidObject, INotifyPropertyChanged
 {
+    private static long _nextId;
+    private readonly string _validId = $"valid_{Interlocked.Increment(ref _nextId)}";
+
     protected System.UInt128 _dirtyFlags;
     protected System.UInt128 _busyFlags;
     protected System.UInt128 _errorFlags;
     protected System.UInt128 _stateFlags;
     protected System.UInt128 _immutableFlags;
 
+    // IMPORTANT: SpinLock is a mutable struct. Do NOT mark this field readonly,
+    // as that would cause Enter() to operate on a defensive copy, breaking the lock.
     private SpinLock _maskSpinLock = new SpinLock();
 
     private readonly string[] _stateHistory = new string[16];
@@ -24,6 +29,7 @@ public abstract class ValidObjectBase : IValidObject, INotifyPropertyChanged
     protected bool _isRestoring = false;
     public int SlabIndex { get; set; } = -1;
 
+    public string ValidId => _validId;
     public System.UInt128 DirtyFlags => _dirtyFlags;
     public System.UInt128 BusyFlags => _busyFlags;
     public System.UInt128 ErrorFlags => _errorFlags;
@@ -114,7 +120,7 @@ public abstract class ValidObjectBase : IValidObject, INotifyPropertyChanged
         }
     }
 
-    public string[] GetStateHistory() => _stateHistory;
+    public string[] GetStateHistory() => (string[])_stateHistory.Clone();
 
     /// <summary>
     /// Sets property and dirty bit.

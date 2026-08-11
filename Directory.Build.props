@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <Authors>UnitBuilds</Authors>
+    <Company>UnitBuilds CC</Company>
+    <Product>VALID</Product>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/UnitBuilds-CC/V.A.L.I.D</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/UnitBuilds-CC/V.A.L.I.D.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>bitmask;crdt;offline-first;blazor;source-generator;mcp</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

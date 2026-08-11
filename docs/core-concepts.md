@@ -1,19 +1,39 @@
 # Core Concepts
 
+## Naming Conventions
+
+V.A.L.I.D. uses a strict naming convention to distinguish framework layers:
+
+| Prefix | Scope | Examples |
+|---|---|---|
+| `Valid` | Core engine types | `ValidObjectBase`, `ValidProperty`, `ValidList`, `ValidSlab` |
+| `Vavid` | Blazor UI component types | `VavidComponentBase`, `VavidSurgicalComponentBase` |
+| `VAVID` (all caps) | Chrome extension / HUD branding | `VAVID Bridge`, `VAVID HUD` |
+| `vavid` (lowercase) | JavaScript bridge global | `window.vavid`, `vavid-obj`, `vavid-bit` |
+
 ## IValidObject
 
-Every V.A.L.I.D. business object implements `IValidObject`. This is the single interface that gives your object reactive state tracking, validation, and undo:
+Every V.A.L.I.D. business object implements `IValidObject`. This is the single interface that gives your object reactive 128-bit bitmask state tracking, validation, and undo:
 
 ```csharp
 public interface IValidObject : INotifyPropertyChanged
 {
-    bool IsDirty { get; }              // Has any property changed since last save?
-    bool IsBusy { get; }               // Is an async operation running?
-    bool IsInvalid { get; }            // Are there validation errors?
-    DiagnosticResult Diagnostics { get; }  // All validation messages
+    // Deterministic runtime identity (e.g., "valid_1", "valid_2")
+    string ValidId { get; }
+
+    // 128-bit bitmask state (replaces old bool flags)
+    UInt128 DirtyFlags { get; }       // Properties changed since last sync
+    UInt128 BusyFlags { get; }        // Properties in async operations
+    UInt128 ErrorFlags { get; }       // Properties with validation errors
+    UInt128 StateFlags { get; }       // Object lifecycle state
+
+    // Convenience derived properties
+    bool IsDirty { get; }             // DirtyFlags != 0
+    bool IsValid { get; }             // ErrorFlags == 0
+    bool IsNew { get; }
 
     void ResetDirtyFlags(bool cascade = true);
-    void BeginEdit();                  // Snapshot state for undo
+    void BeginEdit();                 // Snapshot state for undo
     void CancelEdit();                // Restore snapshot
 
     IParent? Parent { get; set; }     // Parent-child graph wiring
@@ -24,43 +44,64 @@ public interface IValidObject : INotifyPropertyChanged
     T GetPropertyValue<T>(string propertyName);
     void SetPropertyValue<T>(string propertyName, T value);
     bool IsPropertyDirty(string propertyName);
+
+    // Validation
+    void Validate();
+    UInt128 CalculateValidationState();
+    IEnumerable<DiagnosticResult> GetDiagnostics();
+
+    // State history (returns defensive copy)
+    string[] GetStateHistory();
 }
 ```
 
+> **Note on `ValidId`**: Every `ValidObjectBase` subclass receives a unique, auto-incremented identifier
+> (e.g., `valid_1`, `valid_42`). This replaces the previous pattern of using `GetHashCode().ToString()`
+> for JS bridge registration and MCP tracking. `ValidId` is stable, unique, and not affected by
+> hash code collisions or override semantics.
+
 ## Dirty Tracking
 
-Track changes per-property with a simple dictionary:
+Track changes per-property with a **128-bit bitmask**. Each property is assigned a bit index (0–127).
+Setting a property flips its bit in `_dirtyFlags`:
 
 ```csharp
-private Dictionary<string, bool> _propertyDirtyFlags = new();
-private bool _isDirty;
+protected System.UInt128 _dirtyFlags;
 
-public bool IsDirty => _isDirty || Lines.IsDirty;
+public bool IsDirty => _dirtyFlags != System.UInt128.Zero;
 
-protected void OnPropertyChanged(string name)
+protected void OnPropertyChanged(string name, [CallerMemberName] string? propName = null)
 {
-    _isDirty = true;
-    _propertyDirtyFlags[name] = true;
-    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    int bit = GetBitIndex(propName!);
+    _dirtyFlags |= (System.UInt128)1 << bit;
+    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     Parent?.OnChildChanged(this);
 }
 ```
 
-## ValidList\<T\>
+Checking whether any property is dirty is an O(1) comparison — no iteration, no allocation.
+Checking whether a *specific* property is dirty is a single bitwise AND.
 
-A reactive observable collection for child objects. Tracks additions, removals, and deletions:
+## ValidSlab\<T\> and ValidList\<T\>
+
+`ValidSlab<T>` is the correctly-named reactive collection for child objects, backed by the
+unmanaged slab allocator. It tracks additions, removals, and deletions:
 
 ```csharp
 public class AxiomBatch : IValidObject
 {
-    public ValidList<AxiomBatchLine> Lines { get; } = new();
+    public ValidSlab<AxiomBatchLine> Lines { get; } = new();
 
     // IsDirty cascades: batch is dirty if any line is dirty
-    public bool IsDirty => _isDirty || Lines.IsDirty;
+    public bool IsDirty => _dirtyFlags != System.UInt128.Zero || Lines.IsDirty;
 }
 ```
 
-`ValidList<T>` automatically:
+> **Note**: `ValidList<T>` has been marked `[Obsolete]` in favor of `ValidSlab<T>`.
+> The name "ValidList" was misleading — it implied a simple list, but the type is
+> actually a slab-allocated, bitmask-tracked collection. New code should use `ValidSlab<T>`.
+
+`ValidSlab<T>` automatically:
 - Sets `Parent` on added items
 - Tracks removed items in `DeletedItems` for DAL delete operations
 - Fires `CollectionChanged` and `PropertyChanged` on mutations

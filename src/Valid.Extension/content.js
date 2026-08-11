@@ -20,6 +20,7 @@ window.addEventListener('message', (event) => {
     }
 });
 
-chrome.runtime.onMessage.addListener((message) => {
-    window.postMessage({ source: 'vavid-extension-content', type: message.type, detail: message.data }, "*");
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // Only relay messages from the extension context to the page, using a specific origin
+    window.postMessage({ source: 'vavid-extension-content', type: message.type, detail: message.data }, window.location.origin);
 });

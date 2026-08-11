@@ -1,5 +1,7 @@
 (function() {
     let lastKnownCount = -1;
+    let pollingInterval = null;
+    let isPolling = false;
 
     function discoverValidObjects() {
         if (window.__VALID_OBJECTS__) {
@@ -39,6 +41,22 @@
         }
     }
 
+    function startPolling() {
+        if (isPolling) return;
+        isPolling = true;
+        lastKnownCount = -1; // Force fresh discovery
+        pollingInterval = setInterval(discoverValidObjects, 1000);
+    }
+
+    function stopPolling() {
+        if (!isPolling) return;
+        isPolling = false;
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+        }
+    }
+
     window.addEventListener('message', (event) => {
         if (event.source !== window) return;
         const data = event.data;
@@ -47,12 +65,13 @@
         if (data.type === 'vavid-discovery-request') {
             lastKnownCount = -1;
             discoverValidObjects();
+        } else if (data.type === 'vavid-start-polling') {
+            startPolling();
+        } else if (data.type === 'vavid-stop-polling') {
+            stopPolling();
         }
     });
 
-    if (window.__VAVID_BRIDGE_INTERVAL__) {
-        clearInterval(window.__VAVID_BRIDGE_INTERVAL__);
-    }
-
-    window.__VAVID_BRIDGE_INTERVAL__ = setInterval(discoverValidObjects, 1000);
+    // Start polling by default (extension panel may open later)
+    startPolling();
 })();

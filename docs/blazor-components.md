@@ -4,6 +4,8 @@ V.A.L.I.D. provides drop-in Blazor components that integrate with MudBlazor and 
 
 **Package:** `Valid.Infrastructure.Components`
 
+> **Identity**: Use `Model.ValidId` (not `GetHashCode()`) for JS bridge registration, logging, and MCP tracking.
+
 ## ValidForm
 
 A wrapper around `<EditForm>` that includes `ValidValidator` automatically and runs `RuleEngine.Validate()` on submit:
@@ -70,23 +72,26 @@ Bridges V.A.L.I.D.'s `RuleEngine` + `DiagnosticResult` to Blazor's `EditContext`
 3. **Maps diagnostics**: Converts `DiagnosticInfo` entries → Blazor `ValidationMessageStore`
 4. **Listens to INotifyPropertyChanged**: Re-validates when properties change programmatically
 
-## ValidComponentBase\<T\>
+## VavidComponentBase\<T\>
 
-Base class for components that display a single V.A.L.I.D. object:
+Base class for components that display a single V.A.L.I.D. object. Properly manages
+`DotNetObjectReference` lifecycle and uses `ValidId` for JS bridge registration:
 
 ```csharp
-public class InvoiceCard : ValidComponentBase<Invoice>
+public class InvoiceCard : VavidComponentBase<Invoice>
 {
     // Inherited properties:
     //   [Parameter] T Model
-    //   bool IsBusy, IsDirty, IsInvalid
+    //   bool IsBusy, IsDirty, IsValid
+    //   string Model.ValidId for JS bridge registration
 
     // Auto-re-renders when Model.PropertyChanged fires
+    // DotNetObjectReference is properly disposed on re-sync and component disposal
 }
 ```
 
 ```razor
-@inherits ValidComponentBase<Invoice>
+@inherits VavidComponentBase<Invoice>
 
 <MudCard>
     <MudCardContent>
@@ -97,6 +102,10 @@ public class InvoiceCard : ValidComponentBase<Invoice>
     </MudCardContent>
 </MudCard>
 ```
+
+> **Resource management**: `VavidComponentBase` properly disposes `DotNetObjectReference` handles
+> when the model changes or the component is disposed. Previous versions leaked GC handles
+> on every `SyncModelAsync` call.
 
 ## ValidOptimisticComponentBase\<T\>
 

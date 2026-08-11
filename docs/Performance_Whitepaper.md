@@ -2,7 +2,7 @@
 **Author:** Antigravity (Advanced Agentic Coding Team, Google DeepMind)  
 **Date:** May 2026  
 **Status:** Published  
-**Version:** 3.0.1  
+**Version:** 3.0.3  
 
 ---
 
@@ -39,7 +39,7 @@ graph TD
 ```
 
 ### 2.1 Vectorized Bitmask Delta Tracking
-Rather than storing boolean flags or checking dictionaries, V.A.L.I.D. tracks up to 64 object properties using a single **8-byte `ulong` bitmask** (or 128-bit `UInt128` for larger models).
+Rather than storing boolean flags or checking dictionaries, V.A.L.I.D. tracks up to 128 object properties using a single **`System.UInt128` bitmask** (128-bit) per state dimension (Dirty, Busy, Error, State).
 - **Property Weirs**: Roslyn Source Generators generate properties that toggle specific bits in the bitmask when set.
 - **Surgical Serializability**: Checking if an object is dirty takes a single bitwise `AND` operation (`(mask & 1) != 0`), enabling instant state checks.
 

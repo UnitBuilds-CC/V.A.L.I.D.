@@ -60,9 +60,9 @@ public class AxiomBatch : IValidObject
 }
 ```
 
-### In ValidList\<T\>
+### In ValidSlab\<T\>
 
-`ValidList<T>` snapshots list membership (items added/removed) and cascades to children:
+`ValidSlab<T>` (successor to `ValidList<T>`) snapshots list membership (items added/removed) and cascades to children:
 
 ```csharp
 // BeginEdit() snapshots the current items, cascades to each child
@@ -70,6 +70,9 @@ public class AxiomBatch : IValidObject
 ```
 
 This means if a user adds or removes lines during editing, `CancelEdit()` restores the original line collection.
+
+> **Note**: `ValidList<T>` has been marked `[Obsolete]` in favor of `ValidSlab<T>`. Both types
+> support the same snapshot/cancel semantics.
 
 ### In the UI
 
@@ -108,11 +111,11 @@ private void OnBeforeInternalNavigation(LocationChangingContext ctx)
 
 | Item | Snapshotted? | How |
 |---|---|---|
-| `[ValidProperty]` scalar values | ✅ | Reflection dictionary |
-| Child object properties | ✅ | Each child's `BeginEdit()` |
-| List membership (add/remove) | ✅ | `ValidList._snapshot` |
-| Non-`[ValidProperty]` fields | ❌ | Intentionally excluded |
-| Computed properties | ❌ | Recalculated from source values |
+| `[ValidProperty]` scalar values | Yes | Reflection dictionary |
+| Child object properties | Yes | Each child's `BeginEdit()` |
+| List membership (add/remove) | Yes | `ValidSlab._snapshot` |
+| Non-`[ValidProperty]` fields | No | Intentionally excluded |
+| Computed properties | No | Recalculated from source values |
 
 ## CSLA Comparison
 
