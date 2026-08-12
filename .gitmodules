@@ -1,0 +1,3 @@
+[submodule "tools/mcp-lite"]
+	path = tools/mcp-lite
+	url = https://github.com/UnitBuilds-CC/MCP-Lite.git
