@@ -580,6 +580,16 @@ public sealed class ValidTools
         }
     }
 
+    /// <summary>
+    /// Checks the health of the MCP-Lite browser automation process.
+    /// Returns process status, uptime, and connectivity information.
+    /// </summary>
+    [McpServerTool, Description("Checks the health status of the MCP-Lite browser automation process.")]
+    public static string valid_check_mcp_health()
+    {
+        return VisualGuideOrchestrator.GetHealthStatus();
+    }
+
     private static string GetFuzzValue(Random rnd, string typeName)
     {
         return typeName switch

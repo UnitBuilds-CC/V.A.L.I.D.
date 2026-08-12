@@ -153,6 +153,22 @@ public abstract class ValidObjectBase : IValidObject, INotifyPropertyChanged
         return changed;
     }
 
+    /// <summary>
+    /// Sets property and dirty bit, automatically resolving the bit index from the property name.
+    /// Use this overload to avoid manually specifying bit indexes — the generator assigns them in declaration order.
+    /// </summary>
+    /// <remarks>
+    /// This overload calls <see cref="GetBitIndex(string)"/> to resolve the bit index at runtime.
+    /// For maximum performance in hot paths, use the explicit bitIndex overload instead.
+    /// </remarks>
+    protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (string.IsNullOrEmpty(propertyName)) return false;
+        var bitIndex = GetBitIndex(propertyName);
+        if (bitIndex < 0) return false; // Property not tracked
+        return SetProperty(ref field, value, bitIndex, propertyName);
+    }
+
     public abstract IEnumerable<DiagnosticResult> GetDiagnostics();
 
     public abstract string GetValidMetadata();

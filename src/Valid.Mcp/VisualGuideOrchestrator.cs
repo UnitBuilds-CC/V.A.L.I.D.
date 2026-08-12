@@ -28,7 +28,9 @@ public static class VisualGuideOrchestrator
             // Find paths
             var repoRoot = FindRepoRoot();
             blazorAppPath ??= Path.Combine(repoRoot, "samples", "Valid.Sample.Blazor", "Client");
-            mcpLitePath ??= Path.Combine(repoRoot, "tools", "mcp-lite", "mcp-server.exe");
+            mcpLitePath ??= Path.Combine(repoRoot, "tools", "mcp-lite",
+                System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)
+                    ? "mcp-server.exe" : "mcp-server");
 
             if (!File.Exists(mcpLitePath))
             {
@@ -235,6 +237,32 @@ public static class VisualGuideOrchestrator
         }
     }
 
+    /// <summary>
+    /// Returns the health status of the MCP-Lite process and Blazor app.
+    /// </summary>
+    public static string GetHealthStatus()
+    {
+        var mcpRunning = _mcpLiteProcess != null && !_mcpLiteProcess.HasExited;
+        var blazorRunning = !string.IsNullOrEmpty(_blazorAppUrl);
+
+        return JsonSerializer.Serialize(new
+        {
+            mcpLite = new
+            {
+                running = mcpRunning,
+                pid = mcpRunning ? _mcpLiteProcess?.Id : (int?)null,
+                hasExited = _mcpLiteProcess?.HasExited ?? true
+            },
+            blazorApp = new
+            {
+                running = blazorRunning,
+                url = _blazorAppUrl
+            },
+            overall = mcpRunning ? "healthy" : "degraded",
+            timestamp = DateTime.UtcNow
+        }, new JsonSerializerOptions { WriteIndented = true });
+    }
+
     private static string FindRepoRoot()
     {
         var dir = Directory.GetCurrentDirectory();
@@ -293,27 +321,48 @@ public static class VisualGuideOrchestrator
         return process;
     }
 
-    private static async Task<dynamic> SendMcpCommandAsync(string method, object parameters)
+    private static async Task<dynamic> SendMcpCommandAsync(string method, object parameters, int timeoutMs = 5000, int maxRetries = 3)
     {
         if (_mcpLiteProcess == null || _mcpLiteProcess.HasExited)
             throw new InvalidOperationException("MCP-Lite process not running");
 
-        // Send JSON-RPC request
-        var request = new
+        Exception? lastException = null;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            jsonrpc = "2.0",
-            id = Guid.NewGuid().ToString(),
-            method = method,
-            @params = parameters
-        };
+            try
+            {
+                // Send JSON-RPC request
+                var request = new
+                {
+                    jsonrpc = "2.0",
+                    id = Guid.NewGuid().ToString(),
+                    method = method,
+                    @params = parameters
+                };
 
-        var json = JsonSerializer.Serialize(request);
-        await _mcpLiteProcess.StandardInput.WriteLineAsync(json);
-        await _mcpLiteProcess.StandardInput.FlushAsync();
+                var json = JsonSerializer.Serialize(request);
 
-        // Read response (simplified - in production would parse properly)
-        await Task.Delay(500); // Wait for response
+                // Write with timeout
+                var writeTask = _mcpLiteProcess.StandardInput.WriteLineAsync(json);
+                if (await Task.WhenAny(writeTask, Task.Delay(timeoutMs)) != writeTask)
+                    throw new TimeoutException($"MCP command '{method}' timed out after {timeoutMs}ms (attempt {attempt}/{maxRetries})");
 
-        return new { success = true, imageData = (string?)null, error = (string?)null, title = (string?)null };
+                await _mcpLiteProcess.StandardInput.FlushAsync();
+
+                // Read response (simplified - in production would parse properly)
+                await Task.Delay(500); // Wait for response
+
+                return new { success = true, imageData = (string?)null, error = (string?)null, title = (string?)null };
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                if (attempt < maxRetries)
+                    await Task.Delay(1000 * attempt); // Exponential backoff
+            }
+        }
+
+        throw new InvalidOperationException($"MCP command '{method}' failed after {maxRetries} attempts: {lastException?.Message}", lastException);
     }
 }

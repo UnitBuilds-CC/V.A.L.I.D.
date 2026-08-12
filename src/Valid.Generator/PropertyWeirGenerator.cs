@@ -23,6 +23,33 @@ public class PropertyWeirGenerator : ISourceGenerator
         isEnabledByDefault: true,
         description: "VALID objects are limited to 128 properties to ensure O(1) bitmask performance and avoid overflow.");
 
+    private static readonly DiagnosticDescriptor NotPartialError = new DiagnosticDescriptor(
+        id: "VALID002",
+        title: "VALID object must be partial",
+        messageFormat: "The class '{0}' is marked with [ValidObject] but is not declared as 'partial'. Add the 'partial' keyword.",
+        category: "Valid.Generator",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Source generators require the class to be declared as 'partial' to emit additional members.");
+
+    private static readonly DiagnosticDescriptor WrongBaseClassWarning = new DiagnosticDescriptor(
+        id: "VALID003",
+        title: "VALID object should inherit ValidObjectBase",
+        messageFormat: "The class '{0}' is marked with [ValidObject] but does not inherit from ValidObjectBase. The generated code will not compile without this base class.",
+        category: "Valid.Generator",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "VALID objects must inherit ValidObjectBase to access SetProperty, dirty tracking, and validation infrastructure.");
+
+    private static readonly DiagnosticDescriptor NoPropertiesWarning = new DiagnosticDescriptor(
+        id: "VALID004",
+        title: "VALID object has no tracked properties",
+        messageFormat: "The class '{0}' is marked with [ValidObject] but has no [ValidProperty] or [ValidField] members. Add at least one property to track.",
+        category: "Valid.Generator",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "A VALID object with no tracked properties provides no value and may indicate a missing attribute.");
+
     /// <inheritdoc />
     public void Initialize(GeneratorInitializationContext context)
     {
@@ -55,6 +82,41 @@ public class PropertyWeirGenerator : ISourceGenerator
         foreach (var symbol in uniqueSymbols)
         {
             var safeName = symbol.ToDisplayString().Replace(".", "_");
+            var location = symbol.Locations.FirstOrDefault() ?? Location.None;
+
+            // Validate: class must be partial
+            var classSyntax = symbol.DeclaringSyntaxReferences
+                .FirstOrDefault()?.GetSyntax() as ClassDeclarationSyntax;
+            if (classSyntax != null && !classSyntax.Modifiers.Any(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(NotPartialError, location, symbol.Name));
+                continue;
+            }
+
+            // Validate: class should inherit ValidObjectBase
+            var baseType = symbol.BaseType;
+            bool inheritsValidObjectBase = false;
+            while (baseType != null)
+            {
+                if (baseType.Name == "ValidObjectBase")
+                {
+                    inheritsValidObjectBase = true;
+                    break;
+                }
+                baseType = baseType.BaseType;
+            }
+            if (!inheritsValidObjectBase)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(WrongBaseClassWarning, location, symbol.Name));
+            }
+
+            var properties = GetProperties(symbol);
+
+            // Validate: should have at least one tracked property
+            if (properties.Count == 0)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(NoPropertiesWarning, location, symbol.Name));
+            }
 
             var source = GenerateSource(symbol);
             context.AddSource($"{safeName}.g.cs", SourceText.From(source, Encoding.UTF8));
@@ -75,10 +137,8 @@ public class PropertyWeirGenerator : ISourceGenerator
                 context.AddSource($"{safeName}.g.bunit.cs", SourceText.From(bunitTests, Encoding.UTF8));
             }
 
-            var properties = GetProperties(symbol);
             if (properties.Count > 128)
             {
-                var location = symbol.Locations.FirstOrDefault() ?? Location.None;
                 context.ReportDiagnostic(Diagnostic.Create(TooManyPropertiesError, location, symbol.Name, properties.Count));
                 continue;
             }
@@ -314,7 +374,7 @@ public class PropertyWeirGenerator : ISourceGenerator
                             }
                             sb.AppendLine("            {");
                             sb.AppendLine($"                newErrors |= ((System.UInt128)1 << {i});");
-                            sb.AppendLine($"                _diagnostics.Add(new DiagnosticResult(\"{prop.Name}\", \"{msg}\", \"{code}\", null));");
+                            sb.AppendLine($"                _diagnostics.Add(new DiagnosticResult(\"{prop.Name}\", \"{msg}\", \"{code}\", null, this.{prop.Name}?.ToString() ?? \"null\", \"Required\"));");
                             sb.AppendLine("            }");
                         }
                         else if (attrName == "RangeAttribute" || attrName == "Range")
@@ -331,7 +391,7 @@ public class PropertyWeirGenerator : ISourceGenerator
                             sb.AppendLine($"            if (((double)this.{prop.Name}) < {min} || ((double)this.{prop.Name}) > {max})");
                             sb.AppendLine("            {");
                             sb.AppendLine($"                newErrors |= ((System.UInt128)1 << {i});");
-                            sb.AppendLine($"                _diagnostics.Add(new DiagnosticResult(\"{prop.Name}\", \"{msg}\", \"{code}\", null));");
+                            sb.AppendLine($"                _diagnostics.Add(new DiagnosticResult(\"{prop.Name}\", \"{msg}\", \"{code}\", null, this.{prop.Name}.ToString(), \"Range({min}, {max})\"));");
                             sb.AppendLine("            }");
                         }
                         else if (attrName == "StringLengthAttribute" || attrName == "StringLength")
@@ -350,7 +410,7 @@ public class PropertyWeirGenerator : ISourceGenerator
                             sb.AppendLine($"            if (this.{prop.Name} != null && (this.{prop.Name}.Length > {maxLen} || this.{prop.Name}.Length < {minLen}))");
                             sb.AppendLine("            {");
                             sb.AppendLine($"                newErrors |= ((System.UInt128)1 << {i});");
-                            sb.AppendLine($"                _diagnostics.Add(new DiagnosticResult(\"{prop.Name}\", \"{msg}\", \"{code}\", null));");
+                            sb.AppendLine($"                _diagnostics.Add(new DiagnosticResult(\"{prop.Name}\", \"{msg}\", \"{code}\", null, $\"Length={{this.{prop.Name}.Length}}\", \"StringLength({minLen}, {maxLen})\"));");
                             sb.AppendLine("            }");
                         }
                     }

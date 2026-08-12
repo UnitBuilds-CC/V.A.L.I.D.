@@ -47,6 +47,8 @@ public static class WorkflowManager
     /// </summary>
     public class WorkflowDefinition
     {
+        /// <summary>Schema version for forward compatibility. Current: 1.</summary>
+        public int Version { get; set; } = 1;
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

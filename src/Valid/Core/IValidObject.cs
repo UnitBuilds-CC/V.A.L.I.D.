@@ -156,4 +156,19 @@ public interface IValidObject
     event Action<int, int>? BitPulse;
 }
 
-public readonly record struct DiagnosticResult(string Property, string Message, string Code, string? FixSuggestion = null);
+/// <summary>
+/// Represents a single validation diagnostic with property context.
+/// </summary>
+/// <param name="Property">The property name that triggered the diagnostic.</param>
+/// <param name="Message">Human-readable error message.</param>
+/// <param name="Code">Machine-readable error code (e.g., "CUST-001").</param>
+/// <param name="FixSuggestion">Optional suggestion for fixing the error.</param>
+/// <param name="CurrentValue">The current property value at the time of validation (serialized as string).</param>
+/// <param name="ExpectedConstraint">Description of the expected constraint (e.g., "Required", "Range(18, 65)", "Length(3, 100)").</param>
+public readonly record struct DiagnosticResult(
+    string Property,
+    string Message,
+    string Code,
+    string? FixSuggestion = null,
+    string? CurrentValue = null,
+    string? ExpectedConstraint = null);
