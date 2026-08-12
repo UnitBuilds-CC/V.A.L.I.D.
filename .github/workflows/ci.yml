@@ -81,9 +81,13 @@ jobs:
       working-directory: valid
       run: mkdir -p dist
 
+    - name: Build for packing
+      working-directory: valid
+      run: dotnet build src/Valid/Valid.csproj --configuration Release
+
     - name: Pack NuGet packages
       working-directory: valid
-      run: dotnet pack src/Valid/Valid.csproj --configuration Release --output ./dist
+      run: dotnet pack src/Valid/Valid.csproj --configuration Release --output ./dist --no-build
 
     - name: Upload package artifact
       uses: actions/upload-artifact@v4
