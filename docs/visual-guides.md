@@ -185,3 +185,137 @@ Solution: Install Google Chrome in the standard location.
 - Create visual guides for each validation attribute
 - Document the bitmask engine with annotated diagrams
 - Build interactive tutorials with step-by-step screenshots
+
+---
+
+# Workflow Recording & E2E Test Generation
+
+Record browser workflows via MCP-Lite and generate runnable E2E tests.
+
+## Workflow Recording
+
+### 1. Start Recording
+
+```csharp
+valid_start_workflow_recording("customer_validation", "Tests customer form validation flow")
+// Returns: { success: true, workflowName: "customer_validation" }
+```
+
+### 2. Record Steps
+
+```csharp
+// Navigate to page
+valid_record_workflow_step("navigate", url: "https://localhost:5001/customer")
+
+// Type into a field
+valid_record_workflow_step("type_text", nodeId: "280", text: "John Doe")
+
+// Click a button
+valid_record_workflow_step("click", nodeId: "295")
+
+// Wait for validation
+valid_record_workflow_step("wait", waitMs: 1000)
+
+// Take a screenshot at key moments
+valid_capture_screenshot("guides/customer/01-filled-form.png")
+```
+
+### 3. Stop & Save
+
+```csharp
+valid_stop_workflow_recording(
+    description: "Validates customer form with required fields",
+    baseUrl: "https://localhost:5001")
+// Returns: { success: true, path: "workflows/customer_validation.json", stepCount: 5 }
+```
+
+## Workflow JSON Format
+
+Saved workflows are stored in `workflows/` as JSON:
+
+```json
+{
+  "Name": "customer_validation",
+  "Description": "Validates customer form with required fields",
+  "CreatedAt": "2026-08-12T07:00:00Z",
+  "BaseUrl": "https://localhost:5001",
+  "Steps": [
+    { "Action": "navigate", "Url": "https://localhost:5001/customer" },
+    { "Action": "type_text", "NodeId": "280", "Text": "John Doe" },
+    { "Action": "click", "NodeId": "295" },
+    { "Action": "wait", "WaitMs": 1000 }
+  ]
+}
+```
+
+## E2E Test Generation
+
+Generate runnable test code from recorded workflows:
+
+### bUnit (default)
+
+```csharp
+valid_generate_e2e_test("customer_validation", "bunit")
+// Generates: tests/E2E/customer_validationTests.cs
+```
+
+### Playwright
+
+```csharp
+valid_generate_e2e_test("customer_validation", "playwright")
+// Generates headless browser test using Microsoft.Playwright
+```
+
+### Selenium
+
+```csharp
+valid_generate_e2e_test("customer_validation", "selenium")
+// Generates Selenium WebDriver test
+```
+
+## Sitemap Export
+
+Capture and save the application's page structure:
+
+```csharp
+// After crawling with MCP-Lite's graph_start_crawl
+valid_save_sitemap("https://localhost:5001", "[
+  { \"Url\": \"/\", \"Title\": \"Home\", \"Depth\": 0, \"ChildUrls\": [\"/customer\", \"/product\"] },
+  { \"Url\": \"/customer\", \"Title\": \"Customer\", \"Depth\": 1, \"ChildUrls\": [] },
+  { \"Url\": \"/product\", \"Title\": \"Product\", \"Depth\": 1, \"ChildUrls\": [] }
+]")
+// Saves to: sitemaps/sitemap_20260812_070000.json
+```
+
+## Complete E2E Pipeline
+
+```
+1. valid_initialize_visual_guides()     → Launch browser + Blazor app
+2. valid_start_workflow_recording(...)   → Begin recording
+3. valid_navigate_visual_guide(...)      → Navigate pages
+4. valid_record_workflow_step(...)       → Record interactions
+5. valid_capture_screenshot(...)         → Capture key moments
+6. valid_stop_workflow_recording(...)    → Save workflow JSON
+7. valid_generate_e2e_test(...)          → Generate test code
+8. valid_save_sitemap(...)               → Export page structure
+9. valid_shutdown_visual_guides()        → Clean up
+```
+
+## Directory Structure
+
+```
+V.A.L.I.D/
+├── workflows/                    # Recorded workflow JSON files
+│   ├── customer_validation.json
+│   └── product_creation.json
+├── sitemaps/                     # Captured site structure
+│   └── sitemap_20260812.json
+├── tests/
+│   ├── Valid.Testing/            # Unit tests
+│   └── E2E/                      # Generated E2E tests
+│       ├── customer_validationTests.cs
+│       └── product_creationTests.cs
+└── guides/                       # Screenshots and visual guides
+    ├── customer/
+    └── product/
+```

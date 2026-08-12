@@ -490,6 +490,96 @@ public sealed class ValidTools
         return VisualGuideOrchestrator.Shutdown();
     }
 
+    // ==================== Workflow Management ====================
+
+    /// <summary>
+    /// Starts recording a workflow for later playback and E2E test generation.
+    /// </summary>
+    [McpServerTool, Description("Starts recording a workflow. Use valid_record_workflow_step to add steps, then valid_stop_workflow_recording to save.")]
+    public static string valid_start_workflow_recording(string workflowName, string? description = null)
+    {
+        return WorkflowManager.StartRecording(workflowName, description);
+    }
+
+    /// <summary>
+    /// Records a single step in the current workflow.
+    /// </summary>
+    [McpServerTool, Description("Records a step in the current workflow (navigate, click, type_text, wait, scroll, press_key).")]
+    public static string valid_record_workflow_step(string action, string? url = null, string? nodeId = null,
+        string? text = null, string? direction = null, int? amount = null, int? waitMs = null,
+        string? key = null, double? x = null, double? y = null)
+    {
+        return WorkflowManager.RecordStep(action, url, nodeId, text, direction, amount, waitMs, key, x, y);
+    }
+
+    /// <summary>
+    /// Stops recording and saves the workflow to disk.
+    /// </summary>
+    [McpServerTool, Description("Stops recording and saves the workflow to disk for later playback or E2E test generation.")]
+    public static string valid_stop_workflow_recording(string? description = null, string? baseUrl = null)
+    {
+        return WorkflowManager.StopRecording(description, baseUrl);
+    }
+
+    /// <summary>
+    /// Lists all saved workflows.
+    /// </summary>
+    [McpServerTool, Description("Lists all saved workflows with their names, descriptions, and step counts.")]
+    public static string valid_list_workflows()
+    {
+        return WorkflowManager.ListWorkflows();
+    }
+
+    /// <summary>
+    /// Loads a workflow for inspection or playback.
+    /// </summary>
+    [McpServerTool, Description("Loads a saved workflow by name for inspection or playback.")]
+    public static string valid_load_workflow(string workflowName)
+    {
+        return WorkflowManager.LoadWorkflow(workflowName);
+    }
+
+    /// <summary>
+    /// Deletes a saved workflow.
+    /// </summary>
+    [McpServerTool, Description("Deletes a saved workflow by name.")]
+    public static string valid_delete_workflow(string workflowName)
+    {
+        return WorkflowManager.DeleteWorkflow(workflowName);
+    }
+
+    /// <summary>
+    /// Generates E2E test code from a recorded workflow.
+    /// </summary>
+    [McpServerTool, Description("Generates E2E test code (bUnit, Playwright, or Selenium) from a recorded workflow.")]
+    public static string valid_generate_e2e_test(string workflowName, string? testFramework = "bunit")
+    {
+        return WorkflowManager.GenerateE2ETest(workflowName, testFramework);
+    }
+
+    /// <summary>
+    /// Saves a sitemap captured from browser crawling.
+    /// </summary>
+    [McpServerTool, Description("Saves a sitemap (captured via MCP-Lite graph crawling) to a local JSON file.")]
+    public static string valid_save_sitemap(string rootUrl, string nodesJson)
+    {
+        try
+        {
+            var nodes = JsonSerializer.Deserialize<List<WorkflowManager.SitemapNode>>(nodesJson);
+            var sitemap = new WorkflowManager.Sitemap
+            {
+                RootUrl = rootUrl,
+                TotalPages = nodes?.Count ?? 0,
+                Nodes = nodes ?? new()
+            };
+            return WorkflowManager.SaveSitemap(sitemap);
+        }
+        catch (Exception ex)
+        {
+            return JsonSerializer.Serialize(new { success = false, error = ex.Message });
+        }
+    }
+
     private static string GetFuzzValue(Random rnd, string typeName)
     {
         return typeName switch
