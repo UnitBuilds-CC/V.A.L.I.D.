@@ -16,7 +16,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.24" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.24" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\Valid\Valid.csproj" />
-    <ProjectReference Include="..\..\src\Valid.FSharp\Valid.FSharp.fsproj" />
     <ProjectReference Include="..\..\src\Valid.Mcp\Valid.Mcp.csproj" />
     <ProjectReference Include="..\..\src\Valid.Generator\Valid.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <PackageReference Include="Serilog" Version="4.0.0" />
