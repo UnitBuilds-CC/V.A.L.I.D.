@@ -442,6 +442,54 @@ public sealed class ValidTools
         return JsonSerializer.Serialize(docs, new JsonSerializerOptions { WriteIndented = true });
     }
 
+    /// <summary>
+    /// Initializes the visual guide system by launching MCP-Lite browser automation and the Blazor sample app.
+    /// LLMs use this to capture screenshots and create annotated visual guides.
+    /// </summary>
+    [McpServerTool, Description("Initializes the visual guide system (MCP-Lite browser + Blazor sample app) for capturing screenshots and creating annotated guides.")]
+    public static async Task<string> valid_initialize_visual_guides()
+    {
+        return await VisualGuideOrchestrator.InitializeAsync();
+    }
+
+    /// <summary>
+    /// Captures a screenshot of the current browser viewport showing the Blazor sample app.
+    /// Use after navigating to a page with valid_navigate_visual_guide.
+    /// </summary>
+    [McpServerTool, Description("Captures a screenshot of the current browser viewport. Returns the file path to the saved PNG image.")]
+    public static async Task<string> valid_capture_screenshot(string? outputPath = null)
+    {
+        return await VisualGuideOrchestrator.CaptureScreenshotAsync(outputPath);
+    }
+
+    /// <summary>
+    /// Captures a screenshot of a specific DOM element (identified by AOM node ID).
+    /// Use valid_get_aom to find node IDs for specific fields/properties.
+    /// </summary>
+    [McpServerTool, Description("Captures a cropped screenshot of a specific DOM element by its AOM node ID.")]
+    public static async Task<string> valid_capture_node_screenshot(string nodeId, string? outputPath = null)
+    {
+        return await VisualGuideOrchestrator.CaptureNodeScreenshotAsync(nodeId, outputPath);
+    }
+
+    /// <summary>
+    /// Navigates to a specific page in the Blazor sample app for visual guide capture.
+    /// </summary>
+    [McpServerTool, Description("Navigates to a page in the Blazor sample app (e.g., 'customer', 'product', 'order').")]
+    public static async Task<string> valid_navigate_visual_guide(string path)
+    {
+        return await VisualGuideOrchestrator.NavigateAsync(path);
+    }
+
+    /// <summary>
+    /// Shuts down the visual guide system (MCP-Lite and Blazor app).
+    /// </summary>
+    [McpServerTool, Description("Shuts down the visual guide system after capturing all needed screenshots.")]
+    public static string valid_shutdown_visual_guides()
+    {
+        return VisualGuideOrchestrator.Shutdown();
+    }
+
     private static string GetFuzzValue(Random rnd, string typeName)
     {
         return typeName switch
