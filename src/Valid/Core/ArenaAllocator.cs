@@ -51,7 +51,9 @@ public unsafe class ArenaAllocator : IDisposable
             
             if (newOffset > _totalCapacityBytes)
             {
-                throw new OutOfMemoryException($"Arena exhausted. Capacity: {_totalCapacityBytes}, Requested: {size}");
+                throw new OutOfMemoryException(
+                    $"Arena exhausted. Capacity: {_totalCapacityBytes}, Requested: {size}. " +
+                    $"See: https://github.com/UnitBuilds-CC/V.A.L.I.D/wiki/Infrastructure#arena-allocator");
             }
             
             if (Interlocked.CompareExchange(ref _offset, newOffset, currentOffset) == currentOffset)

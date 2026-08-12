@@ -16,7 +16,8 @@ public static class ValidSecurity
         if (obj.ErrorFlags != trueState)
         {
             throw new System.Security.SecurityException(
-                $"[VALID ZERO-TRUST] Shadow validation failed. Client reported errors: {obj.ErrorFlags:X}, Server calculated: {trueState:X}");
+                $"[VALID ZERO-TRUST] Shadow validation failed. Client reported errors: {obj.ErrorFlags:X}, Server calculated: {trueState:X}. " +
+                $"See: https://github.com/UnitBuilds-CC/V.A.L.I.D/wiki/Security#shadow-validation");
         }
     }
 }

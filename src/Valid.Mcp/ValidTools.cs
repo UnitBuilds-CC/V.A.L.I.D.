@@ -344,6 +344,104 @@ public sealed class ValidTools
         }, new JsonSerializerOptions { WriteIndented = true });
     }
 
+    /// <summary>
+    /// Returns comprehensive API documentation for the V.A.L.I.D. framework.
+    /// LLMs can use this to understand the framework's capabilities and write user guides.
+    /// </summary>
+    [McpServerTool, Description("Returns API documentation for V.A.L.I.D. framework types, attributes, and usage patterns. LLMs use this to write user guides.")]
+    public static string valid_get_api_docs(string? typeName = null)
+    {
+        var docs = new
+        {
+            Framework = "V.A.L.I.D. (Vectorized Asynchronous Logic & Intelligent Diagnostics)",
+            Version = "3.1.0",
+            Description = "A .NET 8 bitmask-driven business logic framework using UInt128 for state tracking.",
+            
+            CoreTypes = new object[]
+            {
+                new
+                {
+                    Name = "ValidObjectBase",
+                    Description = "Abstract base class for all VALID objects. Inherits UInt128-backed dirty/busy/error tracking.",
+                    Usage = "Inherit from this class and mark with [ValidObject].",
+                    Example = "[ValidObject]\npublic partial class Customer : ValidObjectBase {\n    [ValidProperty] public string Name { get; set; } = \"\";\n    [ValidProperty] public int Age { get; set; }\n}",
+                    Limits = "Maximum 128 properties per object (UInt128 bitmask limit)."
+                },
+                new
+                {
+                    Name = "IValidObject",
+                    Description = "Core interface defining the bitmask state management contract.",
+                    KeyProperties = "ValidId, DirtyFlags, BusyFlags, ErrorFlags, StateFlags",
+                    KeyMethods = "GetDeltaJson(), UpdatePropertyFromJson(), GetValidMetadata(), CalculateValidationState()"
+                }
+            },
+            
+            Attributes = new[]
+            {
+                new
+                {
+                    Name = "[ValidObject]",
+                    Target = "Class",
+                    Description = "Marks a class for source generator processing. Class must be partial and inherit ValidObjectBase.",
+                    Example = "[ValidObject]\npublic partial class Product : ValidObjectBase { }"
+                },
+                new
+                {
+                    Name = "[ValidProperty]",
+                    Target = "Property",
+                    Description = "Includes a property in bitmask state tracking. Each property gets a unique bit index (0-127).",
+                    Example = "[ValidProperty] public string Name { get; set; } = \"\";"
+                },
+                new
+                {
+                    Name = "[ValidField]",
+                    Target = "Private Field",
+                    Description = "Marks a private field for auto-generated proxy property. Eliminates DTO boilerplate.",
+                    Example = "[ValidField] private string _name = \"\"; // Generates: public string Name { get; set; }"
+                },
+                new
+                {
+                    Name = "[Required]",
+                    Target = "Property",
+                    Description = "Validates that a string property is non-null and non-whitespace.",
+                    Example = "[ValidProperty, Required(\"Name is required\", \"EMP-001\")]\npublic string Name { get; set; } = \"\";"
+                },
+                new
+                {
+                    Name = "[Range]",
+                    Target = "Property",
+                    Description = "Validates that a numeric value is between Min and Max (inclusive).",
+                    Example = "[ValidProperty, Range(18, 65, \"Age must be 18-65\", \"EMP-002\")]\npublic int Age { get; set; }"
+                },
+                new
+                {
+                    Name = "[StringLength]",
+                    Target = "Property",
+                    Description = "Constrains string length between MinimumLength and MaximumLength.",
+                    Example = "[ValidProperty, StringLength(50, MinimumLength = 3)]\npublic string Name { get; set; } = \"\";"
+                }
+            },
+            
+            Capabilities = new[]
+            {
+                "Dirty tracking — which properties changed since last sync",
+                "Busy tracking — which properties are in async operations",
+                "Error tracking — which properties have validation errors",
+                "State tracking — object lifecycle (New, Deleted, etc.)",
+                "Time-travel debugging — circular history buffer (16 snapshots)",
+                "Shadow validation — server-side verification of client state",
+                "CRDT merging — conflict-free replicated data types for offline-first",
+                "SQLite outbox — encrypted, hash-chained event persistence",
+                "Blazor integration — surgical UI updates via BitPulse events",
+                "Web Worker bridge — JavaScript interop via unmanaged memory slab"
+            },
+            
+            QuickStart = "1. Add [ValidObject] to your class\n2. Inherit from ValidObjectBase\n3. Add [ValidProperty] to each tracked property\n4. Optionally add validation attributes ([Required], [Range], [StringLength])\n5. Changes are automatically tracked in DirtyFlags/BusyFlags/ErrorFlags"
+        };
+
+        return JsonSerializer.Serialize(docs, new JsonSerializerOptions { WriteIndented = true });
+    }
+
     private static string GetFuzzValue(Random rnd, string typeName)
     {
         return typeName switch

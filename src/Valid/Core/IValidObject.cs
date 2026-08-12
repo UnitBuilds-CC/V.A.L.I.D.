@@ -7,9 +7,44 @@
 namespace Valid;
 
 /// <summary>
-/// Core interface for VALID 3.0.0 objects.
-/// Defines the technical contract for bitmask state management.
+/// Core interface for VALID 3.0.0 objects. Defines the technical contract for bitmask state management.
 /// </summary>
+/// <example>
+/// <code>
+/// // Define a VALID object with bitmask-tracked properties
+/// [ValidObject]
+/// public partial class Customer : ValidObjectBase
+/// {
+///     [ValidProperty] public string Name { get; set; } = "";
+///     [ValidProperty] public int Age { get; set; }
+///     [ValidProperty, Range(0, 150)] public int Score { get; set; }
+/// }
+/// 
+/// // Use it — changes are automatically tracked in DirtyFlags
+/// var customer = new Customer { Name = "Alice", Age = 30 };
+/// customer.Age = 31;  // DirtyFlags now has bit 1 set
+/// Console.WriteLine(customer.IsDirty);  // true
+/// Console.WriteLine(customer.GetDeltaJson());  // {"Age":31}
+/// </code>
+/// </example>
+/// <remarks>
+/// <para>
+/// VALID uses a <see cref="System.UInt128"/> bitmask to track up to 128 properties per object.
+/// Each property gets a unique bit index (0-127) assigned by the source generator.
+/// </para>
+/// <para>
+/// Key capabilities:
+/// <list type="bullet">
+/// <item><description>Dirty tracking — which properties changed since last sync</description></item>
+/// <item><description>Busy tracking — which properties are in async operations</description></item>
+/// <item><description>Error tracking — which properties have validation errors</description></item>
+/// <item><description>State tracking — object lifecycle (New, Deleted, etc.)</description></item>
+/// </list>
+/// </para>
+/// </remarks>
+/// <seealso cref="ValidObjectAttribute"/>
+/// <seealso cref="ValidPropertyAttribute"/>
+/// <seealso cref="ValidObjectBase"/>
 public interface IValidObject
 {
     /// <summary>
