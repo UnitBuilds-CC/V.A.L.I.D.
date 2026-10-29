@@ -4,7 +4,8 @@
 [![Performance](https://img.shields.io/badge/Performance-Vectorized-blue)](https://github.com/UnitBuilds-CC/V.A.L.I.D)
 [![Diagnostics](https://img.shields.io/badge/HUD-V.A.V.I.D.-orange)](https://github.com/UnitBuilds-CC/V.A.L.I.D)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF)](https://github.com/UnitBuilds-CC/V.A.L.I.D/actions)
-![Version](https://img.shields.io/badge/Version-3.0.3-blueviolet)
+![Version](https://img.shields.io/badge/Version-3.2.0-blueviolet)
+![Targets](https://img.shields.io/badge/Targets-net8.0%20%7C%20net10.0-512BD4)
 
 V.A.L.I.D. is a high-performance, low-latency business logic framework for .NET 8. It replaces standard reflection-based change tracking with a compile-time, bitmask-driven, and compiler-integrated architecture using **128-bit `UInt128` state masks** for dirty, busy, error, and lifecycle tracking.
 
@@ -119,13 +120,31 @@ V.A.L.I.D. is a high-performance framework optimized for modern web interfaces:
 
 ## Quick Start (The 5-Step Path)
 
-1. **Define DTO**: Use `[ValidObject]` and `[Rule]` attributes.
-2. **Generate BO**: The "Property Weir" writes your business object with `ValidId`, bitmask tracking, and validation.
-3. **Save via Shuttle**: Implement `IDataShuttle` for your API.
-4. **Queue Sync**: Use `SqliteOutbox` for reliable, encrypted, hash-chained delivery.
-5. **HUD Integration**: Add `bridge.js` to your Blazor/HTML UI for real-time diagnostics.
+1. **Define the object**: `[ValidObject]` plus `[ValidProperty]` partial properties carrying
+   `[Required]`, `[Range]` or `[StringLength]`. (Validation attributes are `AttributeTargets.Property`
+   only, so rules cannot live on the `[ValidField]` private-field pattern.)
+2. **Generate the body**: The "Property Weir" emits `ValidId`, bitmask tracking, delta serialisation,
+   metadata, validation, and — when xUnit/bunit is referenced — the symmetry and fuzzer tests.
+3. **Persist it yourself**: the framework ships no fetch path, no `IDataShuttle` and no HTTP layer, so
+   your DAL/repository and transport are your own code.
+4. **Queue the offline writes**: `SqliteOutbox` gives hash-chained, AES-GCM encrypted delivery. Note it
+   serialises on a process-local semaphore, so it is a single-process queue, not a server store.
+5. **HUD Integration**: reference the library's static web assets so `wwwroot/js/vavid.js` (not the
+   older `docs/bridge.js` copy) is loaded, and tag elements with `data-vavid`/`vavid-bit`.
 
 ---
+
+## Getting the package
+
+`VALID` is **not published to nuget.org**. Build it and consume it from a folder feed:
+
+```bash
+mkdir -p dist && dotnet build src/Valid/Valid.csproj -c Release
+dotnet pack src/Valid/Valid.csproj -c Release -o dist --no-build
+```
+
+Then point the consuming repository at that `dist` directory as a NuGet source and reference
+`<PackageReference Include="VALID" Version="3.2.0" />`.
 
 ## Development & CI
 

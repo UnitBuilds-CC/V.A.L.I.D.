@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     
     runs-on: ${{ matrix.os }}
     
@@ -23,11 +23,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
-
-    - name: Create dist directory
-      working-directory: valid
-      run: mkdir -p dist
+        dotnet-version: |
+          8.0.x
+          10.0.x
 
     - name: Restore dependencies
       working-directory: valid
@@ -53,7 +51,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: |
+          8.0.x
+          10.0.x
 
     - name: Install dotnet-security-scan
       run: dotnet tool install --global dotnet-security-scan || true
@@ -75,11 +75,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
-
-    - name: Create dist directory
-      working-directory: valid
-      run: mkdir -p dist
+        dotnet-version: |
+          8.0.x
+          10.0.x
 
     - name: Build for packing
       working-directory: valid

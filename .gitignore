@@ -1,7 +1,10 @@
 ## Build Outputs
 [Bb]in/
 [Oo]bj/
-dist/
+# dist must exist in a clean clone: nuget.config declares ./dist as a package source and
+# NuGet treats a missing source as a hard error (NU1301). The folder is kept by .gitkeep.
+dist/*
+!dist/.gitkeep
 publish/
 
 ## NuGet
