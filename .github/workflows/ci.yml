@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         # windows-latest cannot be added: the runner derives its workspace directory from the
-        # repository name, so checkout looks for D:\V.A.L.I.D.\V.A.L.I.D.\, and Windows strips
+        # repository name, so checkout looks for D:\a\V.A.L.I.D.\V.A.L.I.D.\ and Windows strips
         # the trailing dot from a directory name. actions/checkout fails with "Directory ... does
         # not exist" before any step runs. A Windows build is therefore only provable locally —
         # done for this change, see the PR verification notes.
