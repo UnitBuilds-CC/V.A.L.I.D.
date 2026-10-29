@@ -58,7 +58,18 @@ public partial class Invoice
 
 ## Step 2: Define Fields (Modern 3.0.5+ Pattern)
 
-Use `[ValidField]` on private fields. This is the **preferred pattern** as it minimizes boilerplate and allows for explicit initialization. The generator automatically emits the public property with bitmask dirty tracking.
+Use `[ValidField]` on private fields. This minimizes boilerplate and allows for explicit initialization. The generator automatically emits the public property with bitmask dirty tracking.
+
+> **This pattern cannot carry validation.** `ValidationAttribute` is declared
+> `[AttributeUsage(AttributeTargets.Property)]` (`src/Valid/Attributes/Attributes.cs:116`), so
+> `[Required]`, `[Range]` and `[StringLength]` are illegal on a field — the compiler rejects them.
+> The generator *does* look for attributes on the field symbol
+> (`PropertyWeirGenerator.cs:346-358`), but that path can never receive one, so field-tracked members
+> get bitmask tracking and **no declarative rules**. Use `[ValidProperty]` on partial properties for
+> any member that needs a rule, or hand-write `CalculateValidationState()`/`GetDiagnostics()` — in
+> which case the generator stands down for the whole class (`HasMember` guards at `:237, :315, :333`).
+> Note also that `[Range]` emits a `(double)` cast (`PropertyWeirGenerator.cs:387`), so keep `decimal`
+> money bounds in hand-written rules rather than in an attribute.
 
 ```csharp
 [ValidObject]

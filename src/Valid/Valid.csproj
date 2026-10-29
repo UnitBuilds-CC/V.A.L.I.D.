@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <RootNamespace>Valid</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -9,18 +9,24 @@
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>VALID</PackageId>
-    <Version>3.1.0</Version>
-    <Description>Vectorized Asynchronous Logic &amp; Intelligent Diagnostics — VALID 3.1.0</Description>
+    <Version>3.2.0</Version>
+    <Description>Vectorized Asynchronous Logic &amp; Intelligent Diagnostics</Description>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.18" />
-    <PackageReference Include="Microsoft.JSInterop" Version="8.0.18" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.18" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Microsoft.JSInterop" Version="8.0.18" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <!-- 8.0.0 pulls SQLitePCLRaw.lib.e_sqlite3 2.1.6, which GHSA-2m69-gcr7-jv3q marks vulnerable
+         (affected range <= 2.1.11). 8.0.33 resolves 2.1.13 and keeps the net8.0 target honest. -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.33" Condition="'$(TargetFramework)' == 'net8.0'" />
 
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.14" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Microsoft.JSInterop" Version="10.0.14" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" Condition="'$(TargetFramework)' == 'net10.0'" />
   </ItemGroup>
 
   <ItemGroup>

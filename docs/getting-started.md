@@ -6,29 +6,40 @@ V.A.L.I.D. is a high-performance business object framework for .NET 8+ that repl
 
 ## Installation
 
+> **Read this before copying any snippet below.** The package id is `VALID` (not `Valid`), it is
+> **not published to nuget.org** — `dotnet add package VALID` will fail — and it is produced by
+> `pack.ps1` / `dotnet pack` into `dist/`, so a consuming project needs a NuGet source pointing at
+> that folder. There is no `Valid.Infrastructure.Components` package in this repository.
+>
+> The `ValidFactory`, `RuleEngine`, `IDataShuttle<T>`, `ValidForm` and `ValidField` types used in the
+> examples below are **not in the shipped source** (repo-wide: 0 hits outside `docs/` and this page).
+> What exists instead: `new T()` or hydration through the generated `UpdatePropertyFromJson`,
+> generated `CalculateValidationState()` + `GetDiagnostics()` for rules, `GetDeltaJson()` for the
+> wire payload, and a hand-written DAL/repository behind whatever transport you choose — the
+> framework provides no fetch path, no HTTP layer and no auth.
+
 ```bash
-dotnet add package Valid                                # Core business objects, shuttles, rules
-dotnet add package Valid.Infrastructure.Components      # Blazor components (ValidField, ValidForm)
+dotnet build src/Valid/Valid.csproj -c Release
+dotnet pack src/Valid/Valid.csproj -c Release -o dist --no-build
+# then add dist/ as a NuGet source in the consuming repo
 ```
 
-If using central package management (`Directory.Packages.Props`):
+If using central package management (`Directory.Packages.props`):
 
 ```xml
 <PropertyGroup>
-  <ValidVersion>3.0.3</ValidVersion>
+  <ValidVersion>3.2.0</ValidVersion>
 </PropertyGroup>
 
 <ItemGroup>
-  <PackageVersion Include="Valid" Version="$(ValidVersion)" />
-  <PackageVersion Include="Valid.Infrastructure.Components" Version="$(ValidVersion)" />
+  <PackageVersion Include="VALID" Version="$(ValidVersion)" />
 </ItemGroup>
 ```
 
 Then in your module csproj (no version needed):
 
 ```xml
-<PackageReference Include="Valid" />
-<PackageReference Include="Valid.Infrastructure.Components" />
+<PackageReference Include="VALID" />
 ```
 
 ## Your First Business Object

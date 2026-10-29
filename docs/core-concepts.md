@@ -30,30 +30,41 @@ public interface IValidObject : INotifyPropertyChanged
     // Convenience derived properties
     bool IsDirty { get; }             // DirtyFlags != 0
     bool IsValid { get; }             // ErrorFlags == 0
-    bool IsNew { get; }
 
-    void ResetDirtyFlags(bool cascade = true);
-    void BeginEdit();                 // Snapshot state for undo
-    void CancelEdit();                // Restore snapshot
+    // Per-bit state queries (name-based lookups go through GetBitIndex)
+    bool IsDirtyAt(int bitIndex);
+    bool HasErrorAt(int bitIndex);
+    void ResetDirty();
 
-    IParent? Parent { get; set; }     // Parent-child graph wiring
-    void SetBusy(string prop, bool isBusy);
-    void SetError(string prop, bool hasError);
-
-    // Reflection-based property access
-    T GetPropertyValue<T>(string propertyName);
-    void SetPropertyValue<T>(string propertyName, T value);
-    bool IsPropertyDirty(string propertyName);
+    // Reflection-free property access
+    object? GetPropertyValue(string propertyName);
+    void SetPropertyValue(string propertyName, object value);
+    Type GetPropertyType(string propertyName);
+    int GetBitIndex(string propertyName);
+    void UpdatePropertyFromJson(string propertyName, string jsonValue);
 
     // Validation
-    void Validate();
     UInt128 CalculateValidationState();
     IEnumerable<DiagnosticResult> GetDiagnostics();
+    string GetValidMetadata();
 
-    // State history (returns defensive copy)
-    string[] GetStateHistory();
+    // Wire and history
+    string GetDeltaJson();            // only the dirty fields
+    string[] GetStateHistory();       // defensive copy
+
+    event Action<int, int>? BitPulse; // (bitIndex, kind) for the HUD
 }
 ```
+
+> **Corrected against source.** Earlier revisions of this page listed `ResetDirtyFlags(cascade: true)`,
+> `IsPropertyDirty(name)`, `BeginEdit()`/`CancelEdit()`, `SetBusy`/`SetError`, `Parent`/`IParent`,
+> `IsNew` on the interface, and generic `Get/SetPropertyValue<T>` overloads. None of those exist in
+> `src/Valid/Core/IValidObject.cs` or `ValidObjectBase.cs`, so code written from that list does not
+> compile. The block above is the shipped surface: `ResetDirty()` (`ValidObjectBase.cs:189`),
+> `IsDirtyAt`/`HasErrorAt` (`IValidObject.cs:130,135`), and `Validate()` on the base class
+> (`ValidObjectBase.cs:40`) rather than the interface. For undo, the real primitive is the 16-slot
+> circular history — `CaptureSnapshot` on every set and `RestoreHistory(stepsBack)`
+> (`ValidObjectBase.cs:206`) — not an edit-level transaction.
 
 > **Note on `ValidId`**: Every `ValidObjectBase` subclass receives a unique, auto-incremented identifier
 > (e.g., `valid_1`, `valid_42`). This replaces the previous pattern of using `GetHashCode().ToString()`

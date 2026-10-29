@@ -1,10 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>VALID.FSharp</PackageId>
-    <Version>3.0.3</Version>
+    <!-- Was 3.0.3 while the core packed as 3.1.0: two halves of one framework shipping
+         different versions makes "which pairing was tested" unanswerable. -->
+    <Version>3.2.0</Version>
     <Description>F# Logic Engine for the V.A.L.I.D. Framework — CRDTs, Causal Chains, and Axiom Resolution.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>

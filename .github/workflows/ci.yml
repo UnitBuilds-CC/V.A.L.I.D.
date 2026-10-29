@@ -11,6 +11,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # windows-latest cannot be added: the runner derives its workspace directory from the
+        # repository name, so checkout looks for D:\a\V.A.L.I.D.\V.A.L.I.D.\ and Windows strips
+        # the trailing dot from a directory name. actions/checkout fails with "Directory ... does
+        # not exist" before any step runs. A Windows build is therefore only provable locally —
+        # done for this change, see the PR verification notes.
         os: [ubuntu-latest, macos-latest]
     
     runs-on: ${{ matrix.os }}
@@ -23,11 +28,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
-
-    - name: Create dist directory
-      working-directory: valid
-      run: mkdir -p dist
+        dotnet-version: |
+          8.0.x
+          10.0.x
 
     - name: Restore dependencies
       working-directory: valid
@@ -53,7 +56,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: |
+          8.0.x
+          10.0.x
 
     - name: Install dotnet-security-scan
       run: dotnet tool install --global dotnet-security-scan || true
@@ -75,11 +80,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
-
-    - name: Create dist directory
-      working-directory: valid
-      run: mkdir -p dist
+        dotnet-version: |
+          8.0.x
+          10.0.x
 
     - name: Build for packing
       working-directory: valid

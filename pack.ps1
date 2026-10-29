@@ -1,4 +1,4 @@
-# Packaging Script for V.A.L.I.D Framework
+﻿# Packaging Script for V.A.L.I.D Framework
 # Restores, builds, and packages the solution in Release mode.
 
 $ErrorActionPreference = "Stop"
@@ -27,8 +27,13 @@ Write-Host "Packing Valid NuGet package..." -ForegroundColor Green
 dotnet pack src/Valid/Valid.csproj -c Release -o $DistDir --no-build --nologo
 
 # 5. Build and Pack Valid.FSharp library
-Write-Host "Building and Packing Valid.FSharp..." -ForegroundColor Green
-dotnet pack src/Valid.FSharp/Valid.FSharp.fsproj -c Release -o $DistDir --nologo
+# The F# module must be built before it is packed: packing with --no-build, or letting pack
+# decide, produces NU5026 ("file ... Valid.FSharp.dll to be packed was not found on disk").
+Write-Host "Building Valid.FSharp..." -ForegroundColor Green
+dotnet build src/Valid.FSharp/Valid.FSharp.fsproj -c Release --nologo
+
+Write-Host "Packing Valid.FSharp..." -ForegroundColor Green
+dotnet pack src/Valid.FSharp/Valid.FSharp.fsproj -c Release -o $DistDir --no-build --nologo
 
 Write-Host "==============================================" -ForegroundColor Cyan
 Write-Host "Packaging Completed Successfully!" -ForegroundColor Cyan
